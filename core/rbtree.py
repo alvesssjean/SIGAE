@@ -7,6 +7,8 @@ Chave = tuple[str, int]
 VERMELHO = "V"
 NEGRO = "N"
 
+NOMES_COR = {VERMELHO: "vermelho", NEGRO: "negro"}
+
 
 class RBInvalidaError(Exception):
     pass
@@ -15,7 +17,13 @@ class RBInvalidaError(Exception):
 class No:
     __slots__ = ("chave", "valor", "cor", "esq", "dir", "pai")
 
-    def __init__(self, chave: Chave, valor: Any = None, cor: str = VERMELHO, pai: "Optional[No]" = None):
+    def __init__(
+        self,
+        chave: Chave,
+        valor: Any = None,
+        cor: str = VERMELHO,
+        pai: "Optional[No]" = None,
+    ):
         self.chave = chave
         self.valor = valor
         self.cor = cor
@@ -24,10 +32,26 @@ class No:
         self.pai = pai
 
 
+def rotulo(chave: Chave) -> str:
+    return f"{chave[0]}#{chave[1]}"
+
+
+def cor_de(no: Optional[No]) -> str:
+    return NEGRO if no is None else no.cor
+
+
+def exigir(no: Optional[No]) -> No:
+    if no is None:
+        raise RBInvalidaError("estrutura inconsistente durante a operação")
+    return no
+
+
 class RBTree:
-    def __init__(self) -> None:
+    def __init__(self, rastrear: bool = False) -> None:
         self._raiz: Optional[No] = None
         self._tamanho = 0
+        self._rastrear = rastrear
+        self.eventos: list[str] = []
 
     def __len__(self) -> int:
         return self._tamanho
@@ -66,7 +90,45 @@ class RBTree:
             no = no.dir
         return resultado
 
+    def desenhar(self, cores: bool = False) -> str:
+        if self._raiz is None:
+            return "(árvore vazia)"
+
+        def texto(no: No) -> str:
+            base = f"{rotulo(no.chave)} [{no.cor}]"
+            if not cores:
+                return base
+            codigo = "\033[91m" if no.cor == VERMELHO else "\033[7m"
+            return f"{codigo}{base}\033[0m"
+
+        linhas = [texto(self._raiz)]
+
+        def descer(no: No, prefixo: str) -> None:
+            itens = [("E", no.esq), ("D", no.dir)]
+            filhos = [(lado, f) for lado, f in itens if f is not None]
+            for i, (lado, filho) in enumerate(filhos):
+                ultimo = i == len(filhos) - 1
+                ramo = "`-- " if ultimo else "|-- "
+                linhas.append(f"{prefixo}{ramo}{lado}: {texto(filho)}")
+                descer(filho, prefixo + ("    " if ultimo else "|   "))
+
+        descer(self._raiz, "")
+        return "\n".join(linhas)
+
+    def _registrar(self, texto: str) -> None:
+        if self._rastrear:
+            self.eventos.append(texto)
+
+    def _pintar(self, no: No, cor: str) -> None:
+        if no.cor != cor:
+            self._registrar(
+                f"recolorir {rotulo(no.chave)}: "
+                f"{NOMES_COR[no.cor]} -> {NOMES_COR[cor]}"
+            )
+            no.cor = cor
+
     def inserir(self, chave: Chave, valor: Any = None) -> None:
+        self.eventos = []
         pai: Optional[No] = None
         atual = self._raiz
         while atual is not None:
@@ -83,6 +145,7 @@ class RBTree:
         else:
             pai.dir = novo
         self._tamanho += 1
+        self._registrar(f"inserir {rotulo(chave)} (nasce vermelho)")
         self._corrigir_insercao(novo)
 
     def _corrigir_insercao(self, no: No) -> None:
@@ -94,43 +157,167 @@ class RBTree:
             if pai is avo.esq:
                 tio = avo.dir
                 if tio is not None and tio.cor == VERMELHO:
-                    pai.cor = NEGRO
-                    tio.cor = NEGRO
-                    avo.cor = VERMELHO
+                    self._registrar("caso 1: tio vermelho, recolore pai, tio e avô")
+                    self._pintar(pai, NEGRO)
+                    self._pintar(tio, NEGRO)
+                    self._pintar(avo, VERMELHO)
                     no = avo
                 else:
                     if no is pai.dir:
+                        self._registrar("caso 2: tio negro, nó em zigue-zague")
                         no = pai
                         self._rotacionar_esquerda(no)
-                        pai = no.pai
-                    pai.cor = NEGRO
-                    avo.cor = VERMELHO
+                        pai = exigir(no.pai)
+                    self._registrar("caso 3: tio negro, nó em linha")
+                    self._pintar(pai, NEGRO)
+                    self._pintar(avo, VERMELHO)
                     self._rotacionar_direita(avo)
             else:
                 tio = avo.esq
                 if tio is not None and tio.cor == VERMELHO:
-                    pai.cor = NEGRO
-                    tio.cor = NEGRO
-                    avo.cor = VERMELHO
+                    self._registrar("caso 1: tio vermelho, recolore pai, tio e avô")
+                    self._pintar(pai, NEGRO)
+                    self._pintar(tio, NEGRO)
+                    self._pintar(avo, VERMELHO)
                     no = avo
                 else:
                     if no is pai.esq:
+                        self._registrar("caso 2: tio negro, nó em zigue-zague")
                         no = pai
                         self._rotacionar_direita(no)
-                        pai = no.pai
-                    pai.cor = NEGRO
-                    avo.cor = VERMELHO
+                        pai = exigir(no.pai)
+                    self._registrar("caso 3: tio negro, nó em linha")
+                    self._pintar(pai, NEGRO)
+                    self._pintar(avo, VERMELHO)
                     self._rotacionar_esquerda(avo)
         if self._raiz is not None:
-            self._raiz.cor = NEGRO
+            self._pintar(self._raiz, NEGRO)
 
     def remover(self, chave: Chave) -> bool:
-        raise NotImplementedError
+        self.eventos = []
+        z = self._achar(chave)
+        if z is None:
+            return False
+        self._registrar(f"remover {rotulo(chave)}")
+        y = z
+        cor_original = y.cor
+        x: Optional[No]
+        x_pai: Optional[No]
+        if z.esq is None:
+            x = z.dir
+            x_pai = z.pai
+            self._transplantar(z, z.dir)
+        elif z.dir is None:
+            x = z.esq
+            x_pai = z.pai
+            self._transplantar(z, z.esq)
+        else:
+            y = self._minimo(z.dir)
+            self._registrar(
+                f"nó com dois filhos: sucessor {rotulo(y.chave)} assume o lugar"
+            )
+            cor_original = y.cor
+            x = y.dir
+            if y.pai is z:
+                x_pai = y
+            else:
+                x_pai = y.pai
+                self._transplantar(y, y.dir)
+                y.dir = z.dir
+                exigir(y.dir).pai = y
+            self._transplantar(z, y)
+            y.esq = z.esq
+            exigir(y.esq).pai = y
+            self._pintar(y, z.cor)
+        self._tamanho -= 1
+        if cor_original == NEGRO:
+            self._registrar("o nó removido era negro: corrigir o duplo negro")
+            self._corrigir_remocao(x, x_pai)
+        elif x is not None:
+            self._pintar(x, NEGRO)
+        return True
+
+    def _minimo(self, no: No) -> No:
+        while no.esq is not None:
+            no = no.esq
+        return no
+
+    def _transplantar(self, u: No, v: Optional[No]) -> None:
+        if u.pai is None:
+            self._raiz = v
+        elif u is u.pai.esq:
+            u.pai.esq = v
+        else:
+            u.pai.dir = v
+        if v is not None:
+            v.pai = u.pai
+
+    def _corrigir_remocao(self, x: Optional[No], x_pai: Optional[No]) -> None:
+        while x is not self._raiz and cor_de(x) == NEGRO:
+            if x_pai is None:
+                break
+            if x is x_pai.esq:
+                w = exigir(x_pai.dir)
+                if w.cor == VERMELHO:
+                    self._registrar("caso 1: irmão vermelho, troca cores e rotaciona")
+                    self._pintar(w, NEGRO)
+                    self._pintar(x_pai, VERMELHO)
+                    self._rotacionar_esquerda(x_pai)
+                    w = exigir(x_pai.dir)
+                if cor_de(w.esq) == NEGRO and cor_de(w.dir) == NEGRO:
+                    self._registrar("caso 2: irmão negro e sobrinhos negros, sobe")
+                    self._pintar(w, VERMELHO)
+                    x = x_pai
+                    x_pai = x.pai
+                else:
+                    if cor_de(w.dir) == NEGRO:
+                        self._registrar("caso 3: sobrinho distante negro, rotaciona")
+                        self._pintar(exigir(w.esq), NEGRO)
+                        self._pintar(w, VERMELHO)
+                        self._rotacionar_direita(w)
+                        w = exigir(x_pai.dir)
+                    self._registrar("caso 4: sobrinho distante vermelho, finaliza")
+                    self._pintar(w, x_pai.cor)
+                    self._pintar(x_pai, NEGRO)
+                    self._pintar(exigir(w.dir), NEGRO)
+                    self._rotacionar_esquerda(x_pai)
+                    x = self._raiz
+                    x_pai = None
+            else:
+                w = exigir(x_pai.esq)
+                if w.cor == VERMELHO:
+                    self._registrar("caso 1: irmão vermelho, troca cores e rotaciona")
+                    self._pintar(w, NEGRO)
+                    self._pintar(x_pai, VERMELHO)
+                    self._rotacionar_direita(x_pai)
+                    w = exigir(x_pai.esq)
+                if cor_de(w.esq) == NEGRO and cor_de(w.dir) == NEGRO:
+                    self._registrar("caso 2: irmão negro e sobrinhos negros, sobe")
+                    self._pintar(w, VERMELHO)
+                    x = x_pai
+                    x_pai = x.pai
+                else:
+                    if cor_de(w.esq) == NEGRO:
+                        self._registrar("caso 3: sobrinho distante negro, rotaciona")
+                        self._pintar(exigir(w.dir), NEGRO)
+                        self._pintar(w, VERMELHO)
+                        self._rotacionar_esquerda(w)
+                        w = exigir(x_pai.esq)
+                    self._registrar("caso 4: sobrinho distante vermelho, finaliza")
+                    self._pintar(w, x_pai.cor)
+                    self._pintar(x_pai, NEGRO)
+                    self._pintar(exigir(w.esq), NEGRO)
+                    self._rotacionar_direita(x_pai)
+                    x = self._raiz
+                    x_pai = None
+        if x is not None:
+            self._pintar(x, NEGRO)
 
     def _rotacionar_esquerda(self, x: No) -> None:
         y = x.dir
         if y is None:
             raise ValueError("rotação à esquerda exige filho direito")
+        self._registrar(f"rotação à esquerda em {rotulo(x.chave)}")
         x.dir = y.esq
         if y.esq is not None:
             y.esq.pai = x
@@ -148,6 +335,7 @@ class RBTree:
         y = x.esq
         if y is None:
             raise ValueError("rotação à direita exige filho esquerdo")
+        self._registrar(f"rotação à direita em {rotulo(x.chave)}")
         x.esq = y.dir
         if y.dir is not None:
             y.dir.pai = x
@@ -169,11 +357,15 @@ class RBTree:
         if self._raiz.pai is not None:
             raise RBInvalidaError("a raiz não deve ter pai")
         if self._raiz.cor != NEGRO:
-            raise RBInvalidaError(f"a raiz deve ser negra (raiz {self._raiz.chave} é vermelha)")
+            raise RBInvalidaError(
+                f"a raiz deve ser negra (raiz {self._raiz.chave} é vermelha)"
+            )
 
         contados = 0
 
-        def visitar(no: Optional[No], minimo: Optional[Chave], maximo: Optional[Chave]) -> int:
+        def visitar(
+            no: Optional[No], minimo: Optional[Chave], maximo: Optional[Chave]
+        ) -> int:
             nonlocal contados
             if no is None:
                 return 1
@@ -186,7 +378,9 @@ class RBTree:
                 raise RBInvalidaError(f"ordem das chaves violada no nó {no.chave}")
             for filho in (no.esq, no.dir):
                 if filho is not None and filho.pai is not no:
-                    raise RBInvalidaError(f"ponteiro de pai inconsistente em {filho.chave}")
+                    raise RBInvalidaError(
+                        f"ponteiro de pai inconsistente em {filho.chave}"
+                    )
                 if no.cor == VERMELHO and filho is not None and filho.cor == VERMELHO:
                     raise RBInvalidaError(
                         f"dois nós vermelhos seguidos: {no.chave} e {filho.chave}"
@@ -200,7 +394,8 @@ class RBTree:
         visitar(self._raiz, None, None)
         if contados != self._tamanho:
             raise RBInvalidaError(
-                f"tamanho registrado ({self._tamanho}) difere dos nós alcançáveis ({contados})"
+                f"tamanho registrado ({self._tamanho}) difere dos nós "
+                f"alcançáveis ({contados})"
             )
 
     def esta_valida(self) -> bool:
