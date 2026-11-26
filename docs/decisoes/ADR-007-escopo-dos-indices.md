@@ -1,6 +1,6 @@
-# ADR-007: Escopo dos índices e mutabilidade do Paciente
+﻿# ADR-007: Escopo dos índices e mutabilidade do Paciente
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 Pacientes chamados ou encerrados precisam continuar consultáveis.

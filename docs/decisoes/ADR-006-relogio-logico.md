@@ -1,6 +1,6 @@
-# ADR-006: Desempate de médicos por relógio lógico
+﻿# ADR-006: Desempate de médicos por relógio lógico
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 Empate de concluídos favorece quem está há mais tempo sem receber paciente (enunciado §4).
