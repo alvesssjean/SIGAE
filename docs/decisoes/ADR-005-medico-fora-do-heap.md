@@ -1,6 +1,6 @@
-# ADR-005: Médico ocupado fica fora do Heap
+﻿# ADR-005: Médico ocupado fica fora do Heap
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 Um médico Em atendimento não pode ser escolhido.
