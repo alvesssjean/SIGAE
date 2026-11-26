@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SIGAE WEB{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'atendimento/estilo.css' %}">
+</head>
+<body>
+  <header>
+    <div class="brand">SIGAE WEB · Sistema Inteligente de Gerenciamento de Atendimentos de Emergência</div>
+    <nav>
+      <a href="{% url 'painel' %}" class="{% if tela_ativa == 'painel' %}ativo{% endif %}">Painel geral</a>
+      <a href="{% url 'pacientes' %}" class="{% if tela_ativa == 'pacientes' %}ativo{% endif %}">Pacientes</a>
+      <a href="{% url 'triagem' %}" class="{% if tela_ativa == 'triagem' %}ativo{% endif %}">Triagem/Fila</a>
+      <a href="{% url 'medicos' %}" class="{% if tela_ativa == 'medicos' %}ativo{% endif %}">Médicos</a>
+      <a href="{% url 'atendimentos' %}" class="{% if tela_ativa == 'atendimentos' %}ativo{% endif %}">Atendimentos</a>
+      <a href="{% url 'historico' %}" class="{% if tela_ativa == 'historico' %}ativo{% endif %}">Histórico</a>
+      <a href="{% url 'diagnostico' %}" class="{% if tela_ativa == 'diagnostico' %}ativo{% endif %}">Diagnóstico</a>
+    </nav>
+  </header>
+
+  <main>
+    {% if messages %}
+      <ul class="mensagens">
+        {% for message in messages %}
+          <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

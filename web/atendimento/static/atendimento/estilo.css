@@ -1,0 +1,286 @@
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --border: #d8dee6;
+  --text: #1f2937;
+  --muted: #5b6472;
+  --primary: #1d4ed8;
+  --primary-dark: #1e40af;
+  --danger: #b91c1c;
+  --success-bg: #ecfdf5;
+  --success-fg: #065f46;
+  --error-bg: #fef2f2;
+  --error-fg: #991b1b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+header {
+  background: #111827;
+  color: #ffffff;
+  padding: 0.85rem 1.25rem;
+}
+
+header .brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+nav a {
+  color: #e5e7eb;
+  text-decoration: none;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.92rem;
+}
+
+nav a:hover {
+  background: #374151;
+}
+
+nav a.ativo {
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+main {
+  max-width: 1120px;
+  margin: 1.25rem auto;
+  padding: 0 1rem 2rem;
+}
+
+h1 {
+  font-size: 1.45rem;
+  margin: 0 0 1rem;
+}
+
+h2 {
+  font-size: 1.12rem;
+  margin: 1.25rem 0 0.6rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.metrica {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+}
+
+.metrica .rotulo {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.metrica .valor {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.mensagens {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.mensagens li {
+  padding: 0.7rem 0.9rem;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.mensagens li.success {
+  background: var(--success-bg);
+  color: var(--success-fg);
+  border-color: #a7f3d0;
+}
+
+.mensagens li.error {
+  background: var(--error-bg);
+  color: var(--error-fg);
+  border-color: #fecaca;
+}
+
+form.linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: flex-end;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.campo label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  padding: 0.42rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.94rem;
+  background: #ffffff;
+}
+
+button {
+  padding: 0.46rem 0.85rem;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--primary-dark);
+}
+
+button.perigo {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+button.perigo:hover {
+  background: #991b1b;
+}
+
+button.sucesso {
+  background: #047857;
+  border-color: #047857;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+
+th {
+  background: #f1f5f9;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.sit-aguardando {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sit-em-atendimento,
+.sit-em-andamento {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.sit-concluido {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.sit-cancelado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sit-disponivel {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-retorno {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.badge-proximo {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.prio-1 {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.prio-2 {
+  color: #c2410c;
+  font-weight: 700;
+}
+
+.prio-3 {
+  color: #a16207;
+  font-weight: 600;
+}
+
+.prio-4 {
+  color: #047857;
+}
+
+.prio-5 {
+  color: #1d4ed8;
+}
+
+.nota {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.inline-form {
+  display: inline;
+}
