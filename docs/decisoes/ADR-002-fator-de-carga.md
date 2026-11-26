@@ -1,6 +1,6 @@
-# ADR-002: Fator de carga e redimensionamento
+﻿# ADR-002: Fator de carga e redimensionamento
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 Cadeias longas degradam a busca; o enunciado exige redimensionamento.

@@ -1,10 +1,6 @@
 """Cenários C e C2: consistência sem registros órfãos."""
 
-import pytest
-
 from tests.apoio import assert_consistente, cadastrar_medicos, cadastrar_pacientes, ids, novo_sistema
-
-pytestmark = pytest.mark.xfail(reason="aguarda T18/T21/T50")
 
 
 def test_atender_concluir_e_cancelar():

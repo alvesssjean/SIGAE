@@ -1,6 +1,6 @@
-# ADR-012: Cancelamento de atendimento
+﻿# ADR-012: Cancelamento de atendimento
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 O enunciado cita cancelar o atendimento, mas não define o destino do paciente.

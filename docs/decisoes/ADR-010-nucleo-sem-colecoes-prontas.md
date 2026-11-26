@@ -1,6 +1,6 @@
-# ADR-010: Núcleo sem list, dict, set ou heapq
+﻿# ADR-010: Núcleo sem list, dict, set ou heapq
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 O enunciado proíbe estruturas prontas no lugar das exigidas; o grupo estendeu a proibição a `list`.

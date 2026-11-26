@@ -1,6 +1,6 @@
-# ADR-003: Rollback por pilha de compensações
+﻿# ADR-003: Rollback por pilha de compensações
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 Cada operação altera várias estruturas e o banco; uma falha no meio não pode deixar registros órfãos.

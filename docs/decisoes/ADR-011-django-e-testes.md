@@ -1,6 +1,6 @@
-# ADR-011: Django 5.2 e testes sem pytest-django
+﻿# ADR-011: Django 5.2 e testes sem pytest-django
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 A entrega é uma aplicação web e as máquinas têm versões diferentes de Python.
