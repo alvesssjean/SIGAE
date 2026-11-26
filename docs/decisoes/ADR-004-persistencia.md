@@ -1,6 +1,6 @@
-# ADR-004: Porta Repositorio e SQLite apenas como persistência
+﻿# ADR-004: Porta Repositorio e SQLite apenas como persistência
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 O estado deve sobreviver ao reinício sem que o banco substitua as estruturas exigidas.

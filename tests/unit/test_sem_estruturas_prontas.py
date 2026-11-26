@@ -10,7 +10,7 @@ NOS_PROIBIDOS = (ast.List, ast.ListComp, ast.Dict, ast.DictComp, ast.Set, ast.Se
 NOMES_PROIBIDOS = {"list", "dict", "set", "frozenset", "sorted"}
 
 # Remover a entrada quando a task correspondente for mesclada.
-PENDENTES = {"rbtree.py": "aguarda T49", "heap.py": "aguarda T09"}
+PENDENTES: dict[str, str] = {}
 
 
 def violacoes(caminho: Path) -> list:
