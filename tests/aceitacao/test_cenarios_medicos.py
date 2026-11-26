@@ -4,8 +4,6 @@ import pytest
 
 from tests.apoio import assert_consistente, cadastrar_medicos, cadastrar_pacientes, ids, novo_sistema
 
-pytestmark = pytest.mark.xfail(reason="aguarda T18/T21/T50")
-
 
 def test_distribuicao_equilibrada():
     s = novo_sistema()
