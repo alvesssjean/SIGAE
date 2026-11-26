@@ -4,8 +4,6 @@ import pytest
 
 from tests.apoio import assert_consistente, cadastrar_pacientes, ids, novo_sistema
 
-pytestmark = pytest.mark.xfail(reason="aguarda T18")
-
 
 def test_cadastrar_gera_id_e_horario_e_indexa():
     from core.paciente import AGUARDANDO

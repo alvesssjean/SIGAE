@@ -88,3 +88,16 @@ def test_iteracao_pode_ser_repetida():
     for n in (1, 2):
         lista.anexar(n)
     assert list(lista) == list(lista) == [1, 2]
+
+
+def test_remover_valor():
+    lista = ListaEncadeada()
+    for n in (1, 2, 3):
+        lista.anexar(n)
+    assert lista.remover_valor(2) is True
+    assert list(lista) == [1, 3]
+    assert lista.remover_valor(3) is True
+    assert lista.cauda.valor == 1
+    assert lista.remover_valor(99) is False
+    assert lista.remover_valor(1) is True
+    assert lista.cabeca is None and lista.cauda is None and len(lista) == 0

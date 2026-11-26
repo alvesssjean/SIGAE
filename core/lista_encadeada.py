@@ -50,6 +50,23 @@ class ListaEncadeada:
                 return True
         return False
 
+    def remover_valor(self, valor: Any) -> bool:
+        anterior: Optional[NoLista] = None
+        atual = self.cabeca
+        while atual is not None:
+            if atual.valor == valor:
+                if anterior is None:
+                    self.cabeca = atual.proximo
+                else:
+                    anterior.proximo = atual.proximo
+                if atual is self.cauda:
+                    self.cauda = anterior
+                self.tamanho -= 1
+                return True
+            anterior = atual
+            atual = atual.proximo
+        return False
+
     def __iter__(self) -> Iterator[Any]:
         no = self.cabeca
         while no is not None:
