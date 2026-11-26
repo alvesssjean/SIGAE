@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIGAE WEB · Fila de atendimento</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="marca">
+    <span class="logo">SIGAE<b> WEB</b></span>
+    <span class="sep"></span>
+    <div>
+      <h1>Fila de atendimento</h1>
+      <p>Pacientes em ordem de chegada</p>
+    </div>
+  </div>
+  <div class="chips" id="chips" aria-live="polite"></div>
+</header>
+
+<div class="layout">
+  <aside class="coluna">
+    <section class="card">
+      <h2>Cadastro de paciente</h2>
+      <form id="formCadastro" autocomplete="off">
+        <label>Nome do paciente (fictício)
+          <input type="text" id="nome" maxlength="60" placeholder="Ex.: Maria Fictícia" required>
+        </label>
+        <label>Classificação de risco
+          <select id="risco">
+            <option value="1">1 · Emergência</option>
+            <option value="2">2 · Muito urgente</option>
+            <option value="3" selected>3 · Urgente</option>
+            <option value="4">4 · Pouco urgente</option>
+            <option value="5">5 · Não urgente</option>
+          </select>
+        </label>
+        <label>Horário de chegada (AAAA-MM-DD HH:MM:SS)
+          <input type="text" id="horario" inputmode="numeric" spellcheck="false">
+        </label>
+        <label class="check"><input type="checkbox" id="relogioAuto" checked> Usar o relógio do navegador</label>
+        <button class="btn cheio" type="submit" style="margin-top:10px">Cadastrar paciente</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Buscar paciente</h2>
+      <form id="formBusca" autocomplete="off">
+        <label>ID ou nome
+          <input type="text" id="busca" placeholder="Ex.: 12 ou Maria" spellcheck="false">
+        </label>
+        <div class="grade2">
+          <button class="btn cheio" type="submit">Buscar</button>
+          <button class="btn sec cheio" type="button" id="btnLimparBusca">Limpar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Dados de exemplo</h2>
+      <div class="grade2">
+        <button class="btn sec" id="btnExemplo">Gerar 12 pacientes</button>
+        <button class="btn sec" id="btnLimpar">Limpar tudo</button>
+      </div>
+      <p class="suave" style="margin-top:10px">Todos os dados são fictícios.</p>
+    </section>
+  </aside>
+
+  <main class="coluna">
+    <section class="card" id="cartaoBusca" hidden>
+      <h2>Resultado da busca</h2>
+      <div class="tabela"><table>
+        <thead><tr><th>ID</th><th>Paciente</th><th>Chegada</th><th>Risco</th><th>Situação</th><th>Posição na fila</th></tr></thead>
+        <tbody id="corpoBusca"></tbody>
+      </table></div>
+    </section>
+
+    <section class="card">
+      <div class="abas" role="tablist">
+        <button class="aba" role="tab" id="abaEspera" aria-selected="true" data-aba="espera">Fila de espera</button>
+        <button class="aba" role="tab" id="abaHistorico" aria-selected="false" data-aba="historico">Histórico de chegadas</button>
+      </div>
+      <p class="suave" id="infoTabela" style="margin-bottom:10px"></p>
+      <div class="tabela" style="max-height:640px">
+        <table>
+          <thead><tr><th>Nº</th><th>ID</th><th>Paciente</th><th>Chegada</th><th>Risco</th><th>Situação</th><th>Ações</th></tr></thead>
+          <tbody id="corpoTabela"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>Dados fictícios. O SIGAE é um simulador acadêmico.</footer>
+<div class="avisos" id="avisos" aria-live="polite"></div>
+
+<script src="rbtree.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
