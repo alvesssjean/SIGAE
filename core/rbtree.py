@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Iterator, Optional
+
+from core.lista_encadeada import ListaEncadeada
 
 Chave = tuple[str, int]
 
 VERMELHO = "V"
 NEGRO = "N"
-
-NOMES_COR = {VERMELHO: "vermelho", NEGRO: "negro"}
 
 
 class RBInvalidaError(Exception):
@@ -32,6 +32,12 @@ class No:
         self.pai = pai
 
 
+def nome_cor(cor: str) -> str:
+    if cor == VERMELHO:
+        return "vermelho"
+    return "negro"
+
+
 def rotulo(chave: Chave) -> str:
     return f"{chave[0]}#{chave[1]}"
 
@@ -51,10 +57,14 @@ class RBTree:
         self._raiz: Optional[No] = None
         self._tamanho = 0
         self._rastrear = rastrear
-        self.eventos: list[str] = []
+        self.eventos = ListaEncadeada()
+        self.ao_registrar: Any = None
 
     def __len__(self) -> int:
         return self._tamanho
+
+    def raiz(self) -> Optional[No]:
+        return self._raiz
 
     def __contains__(self, chave: Chave) -> bool:
         return self._achar(chave) is not None
@@ -77,18 +87,25 @@ class RBTree:
 
         return h(self._raiz)
 
-    def em_ordem(self) -> list[tuple[Chave, Any]]:
-        resultado: list[tuple[Chave, Any]] = []
-        pilha: list[No] = []
-        no = self._raiz
-        while pilha or no is not None:
-            while no is not None:
-                pilha.append(no)
-                no = no.esq
-            no = pilha.pop()
-            resultado.append((no.chave, no.valor))
-            no = no.dir
-        return resultado
+    def em_ordem(self) -> Iterator[tuple[Chave, Any]]:
+        no = None if self._raiz is None else self._minimo(self._raiz)
+        while no is not None:
+            yield (no.chave, no.valor)
+            no = self._sucessor(no)
+
+    def _minimo(self, no: No) -> No:
+        while no.esq is not None:
+            no = no.esq
+        return no
+
+    def _sucessor(self, no: No) -> Optional[No]:
+        if no.dir is not None:
+            return self._minimo(no.dir)
+        pai = no.pai
+        while pai is not None and no is pai.dir:
+            no = pai
+            pai = pai.pai
+        return pai
 
     def desenhar(self, cores: bool = False) -> str:
         if self._raiz is None:
@@ -101,34 +118,35 @@ class RBTree:
             codigo = "\033[91m" if no.cor == VERMELHO else "\033[7m"
             return f"{codigo}{base}\033[0m"
 
-        linhas = [texto(self._raiz)]
-
-        def descer(no: No, prefixo: str) -> None:
-            itens = [("E", no.esq), ("D", no.dir)]
-            filhos = [(lado, f) for lado, f in itens if f is not None]
-            for i, (lado, filho) in enumerate(filhos):
-                ultimo = i == len(filhos) - 1
+        def descer(no: No, prefixo: str) -> str:
+            resultado = ""
+            if no.esq is not None:
+                ultimo = no.dir is None
                 ramo = "`-- " if ultimo else "|-- "
-                linhas.append(f"{prefixo}{ramo}{lado}: {texto(filho)}")
-                descer(filho, prefixo + ("    " if ultimo else "|   "))
+                resultado += f"\n{prefixo}{ramo}E: {texto(no.esq)}"
+                resultado += descer(no.esq, prefixo + ("    " if ultimo else "|   "))
+            if no.dir is not None:
+                resultado += f"\n{prefixo}`-- D: {texto(no.dir)}"
+                resultado += descer(no.dir, prefixo + "    ")
+            return resultado
 
-        descer(self._raiz, "")
-        return "\n".join(linhas)
+        return texto(self._raiz) + descer(self._raiz, "")
 
     def _registrar(self, texto: str) -> None:
         if self._rastrear:
-            self.eventos.append(texto)
+            self.eventos.anexar(texto)
+            if self.ao_registrar is not None:
+                self.ao_registrar(texto)
 
     def _pintar(self, no: No, cor: str) -> None:
         if no.cor != cor:
             self._registrar(
-                f"recolorir {rotulo(no.chave)}: "
-                f"{NOMES_COR[no.cor]} -> {NOMES_COR[cor]}"
+                f"recolorir {rotulo(no.chave)}: {nome_cor(no.cor)} -> {nome_cor(cor)}"
             )
             no.cor = cor
 
     def inserir(self, chave: Chave, valor: Any = None) -> None:
-        self.eventos = []
+        self.eventos = ListaEncadeada()
         pai: Optional[No] = None
         atual = self._raiz
         while atual is not None:
@@ -194,7 +212,7 @@ class RBTree:
             self._pintar(self._raiz, NEGRO)
 
     def remover(self, chave: Chave) -> bool:
-        self.eventos = []
+        self.eventos = ListaEncadeada()
         z = self._achar(chave)
         if z is None:
             return False
@@ -236,11 +254,6 @@ class RBTree:
         elif x is not None:
             self._pintar(x, NEGRO)
         return True
-
-    def _minimo(self, no: No) -> No:
-        while no.esq is not None:
-            no = no.esq
-        return no
 
     def _transplantar(self, u: No, v: Optional[No]) -> None:
         if u.pai is None:
