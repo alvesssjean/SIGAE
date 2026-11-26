@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Triagem/Fila · SIGAE WEB{% endblock %}
+
+{% block content %}
+<h1>Triagem e Filas</h1>
+
+<div class="card">
+  <h2>Ações de triagem e chamada</h2>
+  <form method="post" action="{% url 'triagem' %}" class="linha">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="paciente_id">ID do paciente aguardando</label>
+      <input type="number" id="paciente_id" name="paciente_id" min="1" required>
+    </div>
+    <div class="campo">
+      <label for="nova_prioridade">Nova prioridade</label>
+      <select id="nova_prioridade" name="nova_prioridade">
+        {% for valor, rotulo in opcoes_prioridade %}
+          <option value="{{ valor }}">{{ rotulo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Reclassificar</button>
+  </form>
+  <p></p>
+  <form method="post" action="{% url 'chamar_proximo' %}">
+    {% csrf_token %}
+    <input type="hidden" name="origem" value="triagem">
+    <button type="submit">Chamar próximo paciente</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Fila por ordem de prioridade (Min-Heap · {{ fila_prioridade|length }})</h2>
+  {% if fila_prioridade %}
+    <table>
+      <thead>
+        <tr>
+          <th>Posição</th>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Prioridade</th>
+          <th>Chegada</th>
+          <th>Marcação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in fila_prioridade %}
+          <tr>
+            <td>{{ forloop.counter }}º</td>
+            <td>#{{ p.id }}</td>
+            <td>{{ p.nome }}</td>
+            <td class="prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
+            <td>{{ p.horario }}</td>
+            <td>
+              {% if proximo and p.id == proximo.id %}
+                <span class="badge badge-proximo">Próximo</span>
+              {% endif %}
+              {% if p.retorno %}
+                <span class="badge badge-retorno">Retorno</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhum paciente aguardando na fila.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Fila por ordem de chegada (Árvore Rubro-Negra · {{ fila_chegada|length }})</h2>
+  {% if fila_chegada %}
+    <table>
+      <thead>
+        <tr>
+          <th>Ordem</th>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Chegada</th>
+          <th>Prioridade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in fila_chegada %}
+          <tr>
+            <td>{{ forloop.counter }}º</td>
+            <td>#{{ p.id }}</td>
+            <td>
+              {{ p.nome }}
+              {% if p.retorno %}<span class="badge badge-retorno">Retorno</span>{% endif %}
+            </td>
+            <td>{{ p.horario }}</td>
+            <td class="prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhum paciente aguardando na fila.</p>
+  {% endif %}
+</div>
+{% endblock %}

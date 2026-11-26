@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Atendimentos · SIGAE WEB{% endblock %}
+
+{% block content %}
+<h1>Atendimentos em andamento</h1>
+
+<div class="card">
+  <p class="nota">
+    Ao cancelar um atendimento, o paciente volta para a frente da fila, logo atrás das Emergências, e o médico volta a Disponível sem somar atendimento. Cada médico pode cancelar o mesmo paciente no máximo uma vez.
+  </p>
+  {% if atendimentos_ativos %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Paciente</th>
+          <th>Médico</th>
+          <th>Status</th>
+          <th>Início</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in atendimentos_ativos %}
+          <tr>
+            <td>#{{ item.atendimento.id }}</td>
+            <td>#{{ item.paciente.id }} · {{ item.paciente.nome }} (P{{ item.paciente.prioridade }})</td>
+            <td>#{{ item.medico.id }} · {{ item.medico.nome }} ({{ item.medico.registro }})</td>
+            <td><span class="badge sit-em-andamento">{{ item.atendimento.status }}</span></td>
+            <td>{{ item.atendimento.inicio }}</td>
+            <td>
+              <form method="post" action="{% url 'concluir_atendimento' item.atendimento.id %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit" class="sucesso">Concluir</button>
+              </form>
+              {% if item.pode_cancelar %}
+                <form method="post" action="{% url 'cancelar_atendimento' item.atendimento.id %}" class="inline-form">
+                  {% csrf_token %}
+                  <button type="submit" class="perigo">Cancelar</button>
+                </form>
+              {% else %}
+                <span class="nota">Cancelamento já usado por este médico</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhum atendimento em andamento no momento.</p>
+  {% endif %}
+</div>
+{% endblock %}
