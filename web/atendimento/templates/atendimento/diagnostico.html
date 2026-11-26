@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Diagnóstico · SIGAE WEB{% endblock %}
+
+{% block content %}
+<h1>Diagnóstico das Estruturas de Dados</h1>
+
+<div class="card">
+  <h2>Consistência geral (validar_indices)</h2>
+  <p>
+    Status:
+    {% if diag.consistencia.ok %}
+      <span class="badge sit-concluido">OK</span>
+    {% else %}
+      <span class="badge sit-cancelado">INCONSISTENTE</span>
+    {% endif %}
+    — {{ diag.consistencia.resumo }}
+  </p>
+  {% if diag.consistencia.erros %}
+    <ul>
+      {% for erro in diag.consistencia.erros %}
+        <li>{{ erro }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <p class="nota">
+    Contadores: paciente={{ diag.ultimo_paciente_id }}, médico={{ diag.ultimo_medico_id }},
+    atendimento={{ diag.ultimo_atendimento_id }}, relógio lógico={{ diag.relogio_logico }}.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Tabelas Hash</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Tabela</th>
+        <th>Itens</th>
+        <th>Capacidade</th>
+        <th>Fator de carga</th>
+        <th>Buckets ocupados</th>
+        <th>Maior cadeia</th>
+        <th>Colisões</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Hash de pacientes</td>
+        <td>{{ diag.hash_pacientes.tamanho }}</td>
+        <td>{{ diag.hash_pacientes.capacidade }}</td>
+        <td>{{ diag.hash_pacientes.fator_carga|floatformat:2 }}</td>
+        <td>{{ diag.hash_pacientes.buckets_ocupados }}</td>
+        <td>{{ diag.hash_pacientes.maior_cadeia }}</td>
+        <td>{{ diag.hash_pacientes.total_colisoes }}</td>
+      </tr>
+      <tr>
+        <td>Hash de médicos</td>
+        <td>{{ diag.hash_medicos.tamanho }}</td>
+        <td>{{ diag.hash_medicos.capacidade }}</td>
+        <td>{{ diag.hash_medicos.fator_carga|floatformat:2 }}</td>
+        <td>{{ diag.hash_medicos.buckets_ocupados }}</td>
+        <td>{{ diag.hash_medicos.maior_cadeia }}</td>
+        <td>{{ diag.hash_medicos.total_colisoes }}</td>
+      </tr>
+      <tr>
+        <td>Hash de atendimentos</td>
+        <td>{{ diag.hash_atendimentos.tamanho }}</td>
+        <td>{{ diag.hash_atendimentos.capacidade }}</td>
+        <td>{{ diag.hash_atendimentos.fator_carga|floatformat:2 }}</td>
+        <td>{{ diag.hash_atendimentos.buckets_ocupados }}</td>
+        <td>{{ diag.hash_atendimentos.maior_cadeia }}</td>
+        <td>{{ diag.hash_atendimentos.total_colisoes }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% if diag.hash_pacientes.buckets_com_colisao %}
+    <p class="nota">
+      Buckets com colisão na Hash de pacientes:
+      {% for par in diag.hash_pacientes.buckets_com_colisao %}
+        bucket {{ par.0 }} ({{ par.1 }} nós){% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Árvores Rubro-Negras</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Árvore</th>
+        <th>Válida</th>
+        <th>Tamanho</th>
+        <th>Altura</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>RB espera</td>
+        <td>{% if diag.rb_espera_valida %}OK{% else %}INVÁLIDA{% endif %}</td>
+        <td>{{ diag.rb_espera_tamanho }}</td>
+        <td>{{ diag.rb_espera_altura }}</td>
+      </tr>
+      <tr>
+        <td>RB histórico</td>
+        <td>{% if diag.rb_historico_valida %}OK{% else %}INVÁLIDA{% endif %}</td>
+        <td>{{ diag.rb_historico_tamanho }}</td>
+        <td>{{ diag.rb_historico_altura }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Min-Heaps (nós ligados sem vetor)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Heap</th>
+        <th>Tamanho</th>
+        <th>Raiz atual</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Heap de pacientes</td>
+        <td>{{ diag.heap_pacientes_tamanho }}</td>
+        <td>
+          {% if diag.heap_pacientes_raiz %}
+            #{{ diag.heap_pacientes_raiz.id }} · {{ diag.heap_pacientes_raiz.nome }}
+            (P{{ diag.heap_pacientes_raiz.prioridade }}{% if diag.heap_pacientes_raiz.retorno %}, retorno{% endif %})
+          {% else %}
+            (vazio)
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Heap de médicos</td>
+        <td>{{ diag.heap_medicos_tamanho }}</td>
+        <td>
+          {% if diag.heap_medicos_raiz %}
+            #{{ diag.heap_medicos_raiz.id }} · {{ diag.heap_medicos_raiz.nome }}
+            (concluídos={{ diag.heap_medicos_raiz.concluidos }}, seq={{ diag.heap_medicos_raiz.seq_ultima_atribuicao }})
+          {% else %}
+            (vazio)
+          {% endif %}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}
