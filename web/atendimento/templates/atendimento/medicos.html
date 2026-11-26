@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Médicos · SIGAE WEB{% endblock %}
+
+{% block content %}
+<h1>Médicos clínicos</h1>
+
+<div class="card">
+  <h2>Cadastrar médico</h2>
+  <form method="post" action="{% url 'medicos' %}" class="linha">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="nome">Nome do médico</label>
+      <input type="text" id="nome" name="nome" required placeholder="Dra. Fictícia">
+    </div>
+    <div class="campo">
+      <label for="registro">Registro profissional fictício</label>
+      <input type="text" id="registro" name="registro" required placeholder="CRM-FIC-001">
+    </div>
+    <button type="submit">Cadastrar</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Consultar médico por ID (Tabela Hash)</h2>
+  <form method="get" action="{% url 'medicos' %}" class="linha">
+    <div class="campo">
+      <label for="buscar_id">ID do médico</label>
+      <input type="number" id="buscar_id" name="buscar_id" value="{{ buscar_id }}" min="1" required>
+    </div>
+    <button type="submit">Buscar</button>
+  </form>
+  {% if medico_buscado %}
+    <p>
+      <strong>Resultado:</strong> #{{ medico_buscado.id }} · {{ medico_buscado.nome }} ({{ medico_buscado.registro }}) —
+      Situação: <strong>{{ medico_buscado.situacao }}</strong> · Concluídos: {{ medico_buscado.concluidos }}
+    </p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Médicos cadastrados ({{ medicos|length }})</h2>
+  {% if medicos %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Registro</th>
+          <th>Situação</th>
+          <th>Concluídos</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for medico in medicos %}
+          <tr>
+            <td>#{{ medico.id }}</td>
+            <td>{{ medico.nome }}</td>
+            <td>{{ medico.registro }}</td>
+            <td>
+              <span class="badge {% if medico.situacao == 'Disponível' %}sit-disponivel{% else %}sit-em-atendimento{% endif %}">
+                {{ medico.situacao }}
+              </span>
+            </td>
+            <td>{{ medico.concluidos }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhum médico cadastrado.</p>
+  {% endif %}
+</div>
+{% endblock %}
