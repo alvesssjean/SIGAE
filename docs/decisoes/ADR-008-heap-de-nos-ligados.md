@@ -1,6 +1,6 @@
-# ADR-008: Heap como árvore completa de nós ligados
+﻿# ADR-008: Heap como árvore completa de nós ligados
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 `list` é proibida no núcleo e é preciso reposicionar ou remover por ID.

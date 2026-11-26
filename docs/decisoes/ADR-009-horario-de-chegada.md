@@ -1,6 +1,6 @@
-# ADR-009: Horário de chegada automático
+﻿# ADR-009: Horário de chegada automático
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 A ordem cronológica precisa valer entre dias, com persistência.
