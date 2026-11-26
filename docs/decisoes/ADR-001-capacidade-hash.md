@@ -1,6 +1,6 @@
-# ADR-001: Capacidade e função de dispersão da Hash
+﻿# ADR-001: Capacidade e função de dispersão da Hash
 
-**Status:** Proposto (mudar para Aceito após aprovação do grupo)
+**Status:** Aceito (24/11/2026)
 
 ## Contexto
 Pacientes precisam de consulta rápida por ID, com Hash implementada pela equipe (enunciado §2).
