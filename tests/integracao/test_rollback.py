@@ -10,8 +10,6 @@ import pytest
 
 from tests.apoio import assert_consistente, ids, novo_sistema
 
-pytestmark = pytest.mark.xfail(reason="aguarda T18/T21/T50")
-
 
 class Falha(Exception):
     pass

@@ -34,4 +34,16 @@ def banco(_banco_de_sessao):
     from django.core.management import call_command
 
     call_command("flush", interactive=False, verbosity=0)
+    try:
+        from web.atendimento.servico import resetar_sistema
+
+        resetar_sistema()
+    except ImportError:
+        pass
     yield
+    try:
+        from web.atendimento.servico import resetar_sistema
+
+        resetar_sistema()
+    except ImportError:
+        pass
