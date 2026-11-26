@@ -3,9 +3,10 @@ import re
 import sys
 from typing import Callable, Optional
 
-from core.rbtree import Chave, RBInvalidaError, RBTree
+from core.rbtree import RBInvalidaError, RBTree
 
-PADRAO_HORARIO = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+DATA_DEMO = "2026-11-26"
+PADRAO_HORARIO = re.compile(r"^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$")
 
 MENU = """
 === Demonstração da Árvore Rubro-Negra ===
@@ -20,15 +21,15 @@ MENU = """
 0) Sair
 """
 
-EXEMPLO = [
-    ("08:00", 1, "Ana"),
-    ("08:05", 2, "Bruno"),
-    ("08:10", 3, "Carla"),
-    ("08:15", 4, "Diego"),
-    ("08:20", 5, "Elisa"),
-    ("08:25", 6, "Fabio"),
-    ("08:30", 7, "Gabi"),
-]
+EXEMPLO = (
+    ("08:00:00", 1, "Ana"),
+    ("08:05:00", 2, "Bruno"),
+    ("08:10:00", 3, "Carla"),
+    ("08:15:00", 4, "Diego"),
+    ("08:20:00", 5, "Elisa"),
+    ("08:25:00", 6, "Fabio"),
+    ("08:30:00", 7, "Gabi"),
+)
 
 
 def ativar_cores() -> bool:
@@ -39,15 +40,17 @@ def ativar_cores() -> bool:
 
 
 def ler_chave(entrada: Callable[[str], str], saida: Callable[[str], None]):
-    horario = entrada("Horário (HH:MM): ").strip()
-    if not PADRAO_HORARIO.match(horario):
-        saida("Horário inválido. Use HH:MM com zero à esquerda (ex.: 08:05).")
+    texto = entrada(f"Horário em {DATA_DEMO} (HH:MM ou HH:MM:SS): ").strip()
+    if not PADRAO_HORARIO.match(texto):
+        saida("Horário inválido. Use HH:MM ou HH:MM:SS com zero à esquerda.")
         return None
+    if len(texto) == 5:
+        texto += ":00"
     texto_id = entrada("ID do paciente: ").strip()
     if not (texto_id.isascii() and texto_id.isdigit()):
         saida("ID inválido. Use um número inteiro.")
         return None
-    return (horario, int(texto_id))
+    return (f"{DATA_DEMO} {texto}", int(texto_id))
 
 
 def mostrar_passos(arvore: RBTree, saida: Callable[[str], None]) -> None:
@@ -77,12 +80,22 @@ def mostrar_resultado(
 def carregar_exemplo(cores: bool, saida: Callable[[str], None]) -> RBTree:
     arvore = RBTree(rastrear=True)
     for horario, id_paciente, nome in EXEMPLO:
-        arvore.inserir((horario, id_paciente), nome)
+        arvore.inserir((f"{DATA_DEMO} {horario}", id_paciente), nome)
         saida(f"\nInserindo {horario} (ID {id_paciente}, {nome}):")
         mostrar_passos(arvore, saida)
     saida("\nÁrvore final:")
     saida(arvore.desenhar(cores))
     return arvore
+
+
+def listar(arvore: RBTree, saida: Callable[[str], None]) -> None:
+    posicao = 0
+    for chave, valor in arvore.em_ordem():
+        posicao += 1
+        extra = f" - {valor}" if valor else ""
+        saida(f"{posicao}. {chave[0]} (ID {chave[1]}){extra}")
+    if posicao == 0:
+        saida("(nenhum paciente)")
 
 
 def main(
@@ -147,17 +160,6 @@ def main(
             saida("Árvore limpa.")
         else:
             saida("Opção inválida.")
-
-
-def listar(arvore: RBTree, saida: Callable[[str], None]) -> None:
-    itens = arvore.em_ordem()
-    if not itens:
-        saida("(nenhum paciente)")
-        return
-    for posicao, (chave, valor) in enumerate(itens, start=1):
-        chave_txt: Chave = chave
-        extra = f" - {valor}" if valor else ""
-        saida(f"{posicao}. {chave_txt[0]} (ID {chave_txt[1]}){extra}")
 
 
 if __name__ == "__main__":
