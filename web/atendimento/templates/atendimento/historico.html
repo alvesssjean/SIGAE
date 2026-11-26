@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Histórico · SIGAE WEB{% endblock %}
+
+{% block content %}
+<h1>Histórico e Indicadores</h1>
+
+<div class="grid-cards">
+  <div class="metrica">
+    <div class="rotulo">Aguardando</div>
+    <div class="valor">{{ indicadores.aguardando }}</div>
+  </div>
+  <div class="metrica">
+    <div class="rotulo">Em atendimento</div>
+    <div class="valor">{{ indicadores.em_atendimento }}</div>
+  </div>
+  <div class="metrica">
+    <div class="rotulo">Concluídos</div>
+    <div class="valor">{{ indicadores.concluidos }}</div>
+  </div>
+  <div class="metrica">
+    <div class="rotulo">Cancelados</div>
+    <div class="valor">{{ indicadores.cancelados }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Atendimentos concluídos por médico</h2>
+  {% if indicadores.medicos %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Médico</th>
+          <th>Registro</th>
+          <th>Situação</th>
+          <th>Atendimentos concluídos</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for medico in indicadores.medicos %}
+          <tr>
+            <td>#{{ medico.id }}</td>
+            <td>{{ medico.nome }}</td>
+            <td>{{ medico.registro }}</td>
+            <td>{{ medico.situacao }}</td>
+            <td>{{ medico.concluidos }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhum médico cadastrado.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Histórico cronológico de chegadas (RB-Tree histórico · {{ chegadas|length }})</h2>
+  {% if chegadas %}
+    <table>
+      <thead>
+        <tr>
+          <th>Ordem</th>
+          <th>ID</th>
+          <th>Paciente</th>
+          <th>Chegada</th>
+          <th>Prioridade</th>
+          <th>Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in chegadas %}
+          <tr>
+            <td>{{ forloop.counter }}º</td>
+            <td>#{{ p.id }}</td>
+            <td>{{ p.nome }}</td>
+            <td>{{ p.horario }}</td>
+            <td class="prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
+            <td>{{ p.situacao }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhuma chegada registrada.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Atendimentos encerrados ({{ encerrados|length }})</h2>
+  {% if encerrados %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Paciente</th>
+          <th>Médico</th>
+          <th>Status</th>
+          <th>Início</th>
+          <th>Fim</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in encerrados %}
+          <tr>
+            <td>#{{ item.atendimento.id }}</td>
+            <td>#{{ item.paciente.id }} · {{ item.paciente.nome }}</td>
+            <td>#{{ item.medico.id }} · {{ item.medico.nome }}</td>
+            <td>
+              <span class="badge {% if item.atendimento.status == 'Concluído' %}sit-concluido{% else %}sit-cancelado{% endif %}">
+                {{ item.atendimento.status }}
+              </span>
+            </td>
+            <td>{{ item.atendimento.inicio }}</td>
+            <td>{{ item.atendimento.fim }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhum atendimento encerrado.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Pacientes cancelados ({{ pacientes_cancelados|length }})</h2>
+  {% if pacientes_cancelados %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Chegada</th>
+          <th>Prioridade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pacientes_cancelados %}
+          <tr>
+            <td>#{{ p.id }}</td>
+            <td>{{ p.nome }}</td>
+            <td>{{ p.horario }}</td>
+            <td>{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhum paciente cancelado.</p>
+  {% endif %}
+</div>
+{% endblock %}
