@@ -1,9 +1,5 @@
 """Cenários A e A2: colisão e redimensionamento da Hash."""
 
-import pytest
-
-pytestmark = pytest.mark.xfail(reason="aguarda T07")
-
 
 def tabela():
     from core.hash_table import HashTable
