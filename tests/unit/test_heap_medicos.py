@@ -1,14 +1,7 @@
 """T15 / H10 / H11 / H12: testes unitários do Heap de médicos."""
 
-import pytest
-
 from core.heap import MinHeap
-
-try:
-    from core.medico import Medico
-except ImportError:
-    Medico = None  # type: ignore[assignment,misc]
-    pytestmark = pytest.mark.xfail(reason="aguarda T11 (core/medico.py)")
+from core.medico import Medico
 
 
 def novo_heap_medicos():
