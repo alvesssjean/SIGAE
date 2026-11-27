@@ -50,9 +50,6 @@ class MinHeap:
     def raiz(self) -> Any:
         return None if self._raiz is None else self._raiz.item
 
-    def no_raiz(self) -> Optional[NoHeap]:
-        return self._raiz
-
     def _no_na_posicao(self, k: int) -> NoHeap:
         no = self._raiz
         if no is None:

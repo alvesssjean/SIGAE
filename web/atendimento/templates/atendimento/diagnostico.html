@@ -1,15 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Estruturas & Diagnóstico · SIGAE WEB{% endblock %}
+{% block title %}Diagnóstico · SIGAE WEB{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
   <div>
-    <h1 class="h3 fw-bold mb-0">
-      <i class="bi bi-diagram-3-fill text-info me-2"></i>Estruturas de Dados ao Vivo & Diagnóstico
-    </h1>
-    <p class="text-muted small mb-0">
-      Visualização em tempo real das Árvores Rubro-Negras, Min-Heaps (nós ligados sem vetor) e Tabelas Hash reais do núcleo
-    </p>
+    <h1 class="h3 fw-bold mb-0"><i class="bi bi-activity text-primary me-2"></i>Diagnóstico</h1>
+    <p class="text-muted small mb-0">Consistência cruzada, métricas internas e listagem ordenada dos dados nas estruturas</p>
   </div>
   <span class="badge fs-6 {% if diag.consistencia.ok %}text-bg-success{% else %}text-bg-danger{% endif %} px-3 py-2">
     <i class="bi {% if diag.consistencia.ok %}bi-shield-check{% else %}bi-shield-exclamation{% endif %} me-1"></i>
@@ -17,372 +13,224 @@
   </span>
 </div>
 
-<!-- Barra de ações rápidas para testar alterações ao vivo e ver as árvores atualizarem -->
-<div class="card shadow-sm mb-4 border-info-subtle">
-  <div class="card-header bg-white fw-bold d-flex flex-wrap justify-content-between align-items-center gap-2">
-    <span><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Operações rápidas ao vivo (atualiza todas as estruturas abaixo)</span>
-    <span class="small text-muted fw-normal">
-      Contadores: Pac={{ diag.ultimo_paciente_id }} · Méd={{ diag.ultimo_medico_id }} · Atend={{ diag.ultimo_atendimento_id }} · Relógio lógico={{ diag.relogio_logico }}
-    </span>
-  </div>
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-bold">Consistência geral (<code>validar_indices</code>)</div>
   <div class="card-body">
-    <div class="row g-3 align-items-end">
-      <div class="col-lg-6">
-        <form method="post" action="{% url 'pacientes' %}" class="row g-2 align-items-end">
-          {% csrf_token %}
-          <input type="hidden" name="origem" value="diagnostico">
-          <div class="col-sm-5">
-            <label for="diag_nome_pac" class="form-label small fw-semibold mb-1">Novo paciente</label>
-            <input type="text" class="form-control form-control-sm" id="diag_nome_pac" name="nome" required placeholder="Nome fictício">
-          </div>
-          <div class="col-sm-4">
-            <label for="diag_prio_pac" class="form-label small fw-semibold mb-1">Prioridade</label>
-            <select id="diag_prio_pac" name="prioridade" class="form-select form-select-sm">
-              {% for valor, rotulo in opcoes_prioridade %}
-                <option value="{{ valor }}">{{ rotulo }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-sm-3 d-grid">
-            <button type="submit" class="btn btn-sm btn-primary fw-semibold">
-              <i class="bi bi-plus-lg me-1"></i>Inserir
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div class="col-lg-4">
-        <form method="post" action="{% url 'medicos' %}" class="row g-2 align-items-end">
-          {% csrf_token %}
-          <input type="hidden" name="origem" value="diagnostico">
-          <div class="col-5">
-            <label for="diag_nome_med" class="form-label small fw-semibold mb-1">Novo médico</label>
-            <input type="text" class="form-control form-control-sm" id="diag_nome_med" name="nome" required placeholder="Dra. X">
-          </div>
-          <div class="col-4">
-            <label for="diag_reg_med" class="form-label small fw-semibold mb-1">Registro</label>
-            <input type="text" class="form-control form-control-sm" id="diag_reg_med" name="registro" required placeholder="CRM-X">
-          </div>
-          <div class="col-3 d-grid">
-            <button type="submit" class="btn btn-sm btn-success fw-semibold">+ Méd.</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="col-lg-2 d-grid">
-        <form method="post" action="{% url 'chamar_proximo' %}" class="d-grid">
-          {% csrf_token %}
-          <input type="hidden" name="origem" value="diagnostico">
-          <button type="submit" class="btn btn-sm btn-dark fw-semibold">
-            <i class="bi bi-megaphone-fill me-1"></i>Chamar próximo
-          </button>
-        </form>
-      </div>
-    </div>
-
+    <p class="mb-2">
+      Status:
+      {% if diag.consistencia.ok %}
+        <span class="badge text-bg-success">OK</span>
+      {% else %}
+        <span class="badge text-bg-danger">INCONSISTENTE</span>
+      {% endif %}
+      — {{ diag.consistencia.resumo }}
+    </p>
     {% if diag.consistencia.erros %}
-      <div class="alert alert-danger mt-3 mb-0 small">
-        <strong>Inconsistências:</strong>
-        <ul class="mb-0 mt-1">
+      <div class="alert alert-danger small mb-2">
+        <ul class="mb-0">
           {% for erro in diag.consistencia.erros %}
             <li>{{ erro }}</li>
           {% endfor %}
         </ul>
       </div>
-    {% else %}
-      <div class="small text-success mt-2">
-        <i class="bi bi-check2-circle me-1"></i>{{ diag.consistencia.resumo }}
-      </div>
     {% endif %}
+    <p class="small text-muted mb-0">
+      Contadores: paciente={{ diag.ultimo_paciente_id }}, médico={{ diag.ultimo_medico_id }},
+      atendimento={{ diag.ultimo_atendimento_id }}, relógio lógico={{ diag.relogio_logico }}.
+    </p>
   </div>
 </div>
 
-<!-- 1. ÁRVORES RUBRO-NEGRAS -->
 <div class="card shadow-sm mb-4">
-  <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
-    <div>
-      <h2 class="h5 fw-bold mb-0"><i class="bi bi-diagram-2-fill text-danger me-2"></i>1. Árvores Rubro-Negras (Ordem de Chegada)</h2>
-      <small class="text-muted">Chave: <code>(horario_iso, id)</code> · Percurso em ordem sem pilha via ponteiro <code>pai</code></small>
-    </div>
-    <div class="small d-flex flex-wrap gap-3">
-      <span><i class="legenda-bolinha bolinha-vermelha"></i>Nó Vermelho</span>
-      <span><i class="legenda-bolinha bolinha-negra"></i>Nó Negro</span>
-      <span><i class="legenda-bolinha bolinha-raiz"></i>Raiz</span>
-    </div>
+  <div class="card-header bg-white fw-bold">Tabelas Hash</div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Tabela</th>
+          <th>Itens</th>
+          <th>Capacidade</th>
+          <th>Fator de carga</th>
+          <th>Buckets ocupados</th>
+          <th>Maior cadeia</th>
+          <th>Colisões</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fw-semibold">Hash de pacientes</td>
+          <td>{{ diag.hash_pacientes.tamanho }}</td>
+          <td>{{ diag.hash_pacientes.capacidade }}</td>
+          <td>{{ diag.hash_pacientes.fator_carga|floatformat:2 }}</td>
+          <td>{{ diag.hash_pacientes.buckets_ocupados }}</td>
+          <td>{{ diag.hash_pacientes.maior_cadeia }}</td>
+          <td>{{ diag.hash_pacientes.total_colisoes }}</td>
+        </tr>
+        <tr>
+          <td class="fw-semibold">Hash de médicos</td>
+          <td>{{ diag.hash_medicos.tamanho }}</td>
+          <td>{{ diag.hash_medicos.capacidade }}</td>
+          <td>{{ diag.hash_medicos.fator_carga|floatformat:2 }}</td>
+          <td>{{ diag.hash_medicos.buckets_ocupados }}</td>
+          <td>{{ diag.hash_medicos.maior_cadeia }}</td>
+          <td>{{ diag.hash_medicos.total_colisoes }}</td>
+        </tr>
+        <tr>
+          <td class="fw-semibold">Hash de atendimentos</td>
+          <td>{{ diag.hash_atendimentos.tamanho }}</td>
+          <td>{{ diag.hash_atendimentos.capacidade }}</td>
+          <td>{{ diag.hash_atendimentos.fator_carga|floatformat:2 }}</td>
+          <td>{{ diag.hash_atendimentos.buckets_ocupados }}</td>
+          <td>{{ diag.hash_atendimentos.maior_cadeia }}</td>
+          <td>{{ diag.hash_atendimentos.total_colisoes }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-  <div class="card-body">
-    <div class="row g-4">
-      <div class="col-12">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-          <h3 class="h6 fw-bold mb-0">RB Espera (apenas pacientes Aguardando)</h3>
-          <div class="d-flex gap-2">
-            <span class="badge {% if diag.rb_espera_valida %}text-bg-success{% else %}text-bg-danger{% endif %}">
-              rb.validar(): {% if diag.rb_espera_valida %}OK{% else %}INVÁLIDA{% endif %}
-            </span>
-            <span class="badge text-bg-dark">Nós: {{ diag.rb_espera_tamanho }}</span>
-            <span class="badge text-bg-secondary">Altura: {{ diag.rb_espera_altura }}</span>
-          </div>
-        </div>
-        <div class="sigae-palco-svg mb-2">
-          {% if svg_rb_espera %}
-            {{ svg_rb_espera }}
-          {% else %}
-            <span class="text-muted small">Árvore RB Espera vazia (nenhum paciente aguardando).</span>
-          {% endif %}
-        </div>
-        <details class="small">
-          <summary class="text-muted" style="cursor:pointer">Ver representação textual <code>rb_espera.desenhar()</code></summary>
-          <pre class="rb-ascii mt-2">{{ visao.rb_espera_texto }}</pre>
-        </details>
-      </div>
-
-      <div class="col-12">
-        <hr class="my-1">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 mt-2 gap-2">
-          <h3 class="h6 fw-bold mb-0">RB Histórico (todas as chegadas, nunca removidas)</h3>
-          <div class="d-flex gap-2">
-            <span class="badge {% if diag.rb_historico_valida %}text-bg-success{% else %}text-bg-danger{% endif %}">
-              rb.validar(): {% if diag.rb_historico_valida %}OK{% else %}INVÁLIDA{% endif %}
-            </span>
-            <span class="badge text-bg-dark">Nós: {{ diag.rb_historico_tamanho }}</span>
-            <span class="badge text-bg-secondary">Altura: {{ diag.rb_historico_altura }}</span>
-          </div>
-        </div>
-        <div class="sigae-palco-svg mb-2">
-          {% if svg_rb_historico %}
-            {{ svg_rb_historico }}
-          {% else %}
-            <span class="text-muted small">Árvore RB Histórico vazia.</span>
-          {% endif %}
-        </div>
-        <details class="small">
-          <summary class="text-muted" style="cursor:pointer">Ver representação textual <code>rb_historico.desenhar()</code></summary>
-          <pre class="rb-ascii mt-2">{{ visao.rb_historico_texto }}</pre>
-        </details>
-      </div>
+  {% if diag.hash_pacientes.buckets_com_colisao %}
+    <div class="card-footer bg-white small text-muted">
+      Buckets com colisão na Hash de pacientes:
+      {% for par in diag.hash_pacientes.buckets_com_colisao %}
+        bucket {{ par.0 }} ({{ par.1 }} nós){% if not forloop.last %}, {% endif %}
+      {% endfor %}
     </div>
-  </div>
+  {% endif %}
 </div>
 
-<!-- 2. MIN-HEAPS SEM VETOR -->
-<div class="card shadow-sm mb-4">
-  <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
-    <div>
-      <h2 class="h5 fw-bold mb-0"><i class="bi bi-triangle-fill text-warning me-2"></i>2. Min-Heaps (Árvore Binária Completa Ligada — sem vetor)</h2>
-      <small class="text-muted">Posição <code>k</code> localizada pelos bits (<code>0</code>=esquerda, <code>1</code>=direita) · Mapa <code>id → nó</code> em <code>HashTable</code></small>
-    </div>
-    <div class="small d-flex flex-wrap gap-2">
-      <span class="badge badge-prio-1">P1 Emergência</span>
-      <span class="badge badge-retorno">Retorno (classe 1)</span>
-      <span class="badge badge-prio-2">P2</span>
-      <span class="badge badge-prio-3">P3</span>
-      <span class="badge badge-prio-4">P4</span>
-      <span class="badge badge-prio-5">P5</span>
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-bold">Árvores Rubro-Negras (ordem de chegada)</div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Árvore</th>
+              <th>Válida</th>
+              <th>Tamanho</th>
+              <th>Altura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="fw-semibold">RB espera</td>
+              <td>
+                <span class="badge {% if diag.rb_espera_valida %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                  {% if diag.rb_espera_valida %}OK{% else %}INVÁLIDA{% endif %}
+                </span>
+              </td>
+              <td>{{ diag.rb_espera_tamanho }}</td>
+              <td>{{ diag.rb_espera_altura }}</td>
+            </tr>
+            <tr>
+              <td class="fw-semibold">RB histórico</td>
+              <td>
+                <span class="badge {% if diag.rb_historico_valida %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                  {% if diag.rb_historico_valida %}OK{% else %}INVÁLIDA{% endif %}
+                </span>
+              </td>
+              <td>{{ diag.rb_historico_tamanho }}</td>
+              <td>{{ diag.rb_historico_altura }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-body border-top small">
+        <div class="fw-semibold mb-1">Dados na RB espera (percurso em ordem · chave <code>(horário, id)</code>):</div>
+        {% if rb_espera_lista %}
+          <ol class="mb-3 ps-3">
+            {% for p in rb_espera_lista %}
+              <li>
+                <strong>#{{ p.id }} · {{ p.nome }}</strong> — chegada <code>{{ p.horario }}</code> · P{{ p.prioridade }} ({{ p.descricao_prioridade }}){% if p.retorno %} · <span class="badge badge-retorno">Retorno</span>{% endif %}
+              </li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p class="text-muted mb-3">(RB espera vazia)</p>
+        {% endif %}
+
+        <div class="fw-semibold mb-1">Dados na RB histórico (todas as chegadas · chave <code>(horário, id)</code>):</div>
+        {% if rb_historico_lista %}
+          <ol class="mb-0 ps-3">
+            {% for p in rb_historico_lista %}
+              <li>
+                <strong>#{{ p.id }} · {{ p.nome }}</strong> — chegada <code>{{ p.horario }}</code> · P{{ p.prioridade }} · {{ p.situacao }}
+              </li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p class="text-muted mb-0">(RB histórico vazia)</p>
+        {% endif %}
+      </div>
     </div>
   </div>
-  <div class="card-body">
-    <div class="row g-4">
-      <div class="col-xl-7">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-          <h3 class="h6 fw-bold mb-0">Min-Heap de Pacientes</h3>
-          <div class="d-flex gap-2">
-            <span class="badge text-bg-primary">Tamanho: {{ diag.heap_pacientes_tamanho }}</span>
-            {% if diag.heap_pacientes_raiz %}
-              <span class="badge text-bg-warning text-dark">
-                Raiz: #{{ diag.heap_pacientes_raiz.id }} · {{ diag.heap_pacientes_raiz.nome }} (P{{ diag.heap_pacientes_raiz.prioridade }})
-              </span>
-            {% endif %}
-          </div>
-        </div>
-        <div class="sigae-palco-svg">
-          {% if svg_heap_pacientes %}
-            {{ svg_heap_pacientes }}
-          {% else %}
-            <span class="text-muted small">Heap de pacientes vazio.</span>
-          {% endif %}
-        </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-bold">Min-Heaps (nós ligados sem vetor)</div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Heap</th>
+              <th>Tamanho</th>
+              <th>Raiz atual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="fw-semibold">Heap de pacientes</td>
+              <td>{{ diag.heap_pacientes_tamanho }}</td>
+              <td>
+                {% if diag.heap_pacientes_raiz %}
+                  #{{ diag.heap_pacientes_raiz.id }} · {{ diag.heap_pacientes_raiz.nome }}
+                  (P{{ diag.heap_pacientes_raiz.prioridade }}{% if diag.heap_pacientes_raiz.retorno %}, retorno{% endif %})
+                {% else %}
+                  <span class="text-muted">(vazio)</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-semibold">Heap de médicos</td>
+              <td>{{ diag.heap_medicos_tamanho }}</td>
+              <td>
+                {% if diag.heap_medicos_raiz %}
+                  #{{ diag.heap_medicos_raiz.id }} · {{ diag.heap_medicos_raiz.nome }}
+                  (concluídos={{ diag.heap_medicos_raiz.concluidos }}, seq={{ diag.heap_medicos_raiz.seq_ultima_atribuicao }})
+                {% else %}
+                  <span class="text-muted">(vazio)</span>
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-
-      <div class="col-xl-5">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-          <h3 class="h6 fw-bold mb-0">Min-Heap de Médicos Disponíveis</h3>
-          <div class="d-flex gap-2">
-            <span class="badge text-bg-success">Livres: {{ diag.heap_medicos_tamanho }}</span>
-            {% if diag.heap_medicos_raiz %}
-              <span class="badge text-bg-warning text-dark">
-                Raiz: #{{ diag.heap_medicos_raiz.id }} ({{ diag.heap_medicos_raiz.concluidos }} conc., seq={{ diag.heap_medicos_raiz.seq_ultima_atribuicao }})
-              </span>
-            {% endif %}
-          </div>
-        </div>
-        <div class="sigae-palco-svg">
-          {% if svg_heap_medicos %}
-            {{ svg_heap_medicos }}
-          {% else %}
-            <span class="text-muted small">Nenhum médico disponível no Heap.</span>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 3. TABELAS HASH COM BUCKETS E CADEIAS -->
-<div class="card shadow-sm mb-4">
-  <div class="card-header bg-white">
-    <h2 class="h5 fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>3. Tabelas Hash (Tupla Imutável de Sentinelas · Encadeamento Separado)</h2>
-    <small class="text-muted">Função <code>h(id) = id % capacidade</code> · Redimensiona para próximo primo ≥ 2× ao ultrapassar fator de carga 0,75</small>
-  </div>
-  <div class="card-body">
-    <div class="table-responsive mb-4">
-      <table class="table table-bordered table-sm align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Tabela</th>
-            <th>Itens</th>
-            <th>Capacidade</th>
-            <th>Fator de carga (limite 0,75)</th>
-            <th>Buckets ocupados</th>
-            <th>Maior cadeia</th>
-            <th>Colisões</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="fw-semibold">Hash de pacientes</td>
-            <td>{{ diag.hash_pacientes.tamanho }}</td>
-            <td>{{ diag.hash_pacientes.capacidade }}</td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height: 8px;">
-                  <div class="progress-bar bg-primary" style="width: {{ pct_carga_pacientes }}%"></div>
-                </div>
-                <span class="small fw-semibold">{{ diag.hash_pacientes.fator_carga|floatformat:2 }}</span>
-              </div>
-            </td>
-            <td>{{ diag.hash_pacientes.buckets_ocupados }}</td>
-            <td>{{ diag.hash_pacientes.maior_cadeia }}</td>
-            <td>
-              <span class="badge {% if diag.hash_pacientes.total_colisoes > 0 %}text-bg-warning text-dark{% else %}text-bg-secondary{% endif %}">
-                {{ diag.hash_pacientes.total_colisoes }}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td class="fw-semibold">Hash de médicos</td>
-            <td>{{ diag.hash_medicos.tamanho }}</td>
-            <td>{{ diag.hash_medicos.capacidade }}</td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height: 8px;">
-                  <div class="progress-bar bg-success" style="width: {{ pct_carga_medicos }}%"></div>
-                </div>
-                <span class="small fw-semibold">{{ diag.hash_medicos.fator_carga|floatformat:2 }}</span>
-              </div>
-            </td>
-            <td>{{ diag.hash_medicos.buckets_ocupados }}</td>
-            <td>{{ diag.hash_medicos.maior_cadeia }}</td>
-            <td>
-              <span class="badge {% if diag.hash_medicos.total_colisoes > 0 %}text-bg-warning text-dark{% else %}text-bg-secondary{% endif %}">
-                {{ diag.hash_medicos.total_colisoes }}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td class="fw-semibold">Hash de atendimentos</td>
-            <td>{{ diag.hash_atendimentos.tamanho }}</td>
-            <td>{{ diag.hash_atendimentos.capacidade }}</td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height: 8px;">
-                  <div class="progress-bar bg-info" style="width: {{ pct_carga_atendimentos }}%"></div>
-                </div>
-                <span class="small fw-semibold">{{ diag.hash_atendimentos.fator_carga|floatformat:2 }}</span>
-              </div>
-            </td>
-            <td>{{ diag.hash_atendimentos.buckets_ocupados }}</td>
-            <td>{{ diag.hash_atendimentos.maior_cadeia }}</td>
-            <td>
-              <span class="badge {% if diag.hash_atendimentos.total_colisoes > 0 %}text-bg-warning text-dark{% else %}text-bg-secondary{% endif %}">
-                {{ diag.hash_atendimentos.total_colisoes }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <ul class="nav nav-tabs mb-3" id="abasHash" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active fw-semibold" id="tab-hash-pac" data-bs-toggle="tab" data-bs-target="#pane-hash-pac" type="button" role="tab">
-          Buckets · Pacientes ({{ diag.hash_pacientes.tamanho }}/{{ diag.hash_pacientes.capacidade }})
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link fw-semibold" id="tab-hash-med" data-bs-toggle="tab" data-bs-target="#pane-hash-med" type="button" role="tab">
-          Buckets · Médicos ({{ diag.hash_medicos.tamanho }}/{{ diag.hash_medicos.capacidade }})
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link fw-semibold" id="tab-hash-atend" data-bs-toggle="tab" data-bs-target="#pane-hash-atend" type="button" role="tab">
-          Buckets · Atendimentos ({{ diag.hash_atendimentos.tamanho }}/{{ diag.hash_atendimentos.capacidade }})
-        </button>
-      </li>
-    </ul>
-
-    <div class="tab-content">
-      <div class="tab-pane fade show active" id="pane-hash-pac" role="tabpanel">
-        {% for b in buckets_pacientes %}
-          <div class="hash-bucket-row {% if b.colisao %}hash-colisao{% endif %}">
-            <span class="hash-indice">bucket[{{ b.indice }}]</span>
-            {% if b.colisao %}<span class="badge text-bg-warning text-dark">Colisão ({{ b.tamanho }})</span>{% endif %}
-            {% for item in b.itens %}
-              <span class="hash-seta">→</span>
-              <span class="hash-no">
-                <strong>{{ item.rotulo }}</strong>
-                <span class="text-muted ms-1">{{ item.detalhe }}</span>
-              </span>
+      <div class="card-body border-top small">
+        <div class="fw-semibold mb-1">Ordem de chamada no Heap de pacientes · chave <code>(classe, prioridade, horário, id)</code>:</div>
+        {% if heap_pacientes_lista %}
+          <ol class="mb-3 ps-3">
+            {% for p in heap_pacientes_lista %}
+              <li>
+                <strong>#{{ p.id }} · {{ p.nome }}</strong> — P{{ p.prioridade }} ({{ p.descricao_prioridade }}) · chegada <code>{{ p.horario }}</code>{% if p.retorno %} · <span class="badge badge-retorno">Retorno</span>{% endif %}
+              </li>
             {% endfor %}
-            <span class="hash-seta">→</span>
-            <span class="hash-nulo">None</span>
-          </div>
-        {% endfor %}
-      </div>
+          </ol>
+        {% else %}
+          <p class="text-muted mb-3">(Heap de pacientes vazio)</p>
+        {% endif %}
 
-      <div class="tab-pane fade" id="pane-hash-med" role="tabpanel">
-        {% for b in buckets_medicos %}
-          <div class="hash-bucket-row {% if b.colisao %}hash-colisao{% endif %}">
-            <span class="hash-indice">bucket[{{ b.indice }}]</span>
-            {% if b.colisao %}<span class="badge text-bg-warning text-dark">Colisão ({{ b.tamanho }})</span>{% endif %}
-            {% for item in b.itens %}
-              <span class="hash-seta">→</span>
-              <span class="hash-no">
-                <strong>{{ item.rotulo }}</strong>
-                <span class="text-muted ms-1">{{ item.detalhe }}</span>
-              </span>
+        <div class="fw-semibold mb-1">Ordem de seleção no Heap de médicos · chave <code>(concluídos, seq, id)</code>:</div>
+        {% if heap_medicos_lista %}
+          <ol class="mb-0 ps-3">
+            {% for m in heap_medicos_lista %}
+              <li>
+                <strong>#{{ m.id }} · {{ m.nome }}</strong> ({{ m.registro }}) — {{ m.concluidos }} concluídos · seq={{ m.seq_ultima_atribuicao }}
+              </li>
             {% endfor %}
-            <span class="hash-seta">→</span>
-            <span class="hash-nulo">None</span>
-          </div>
-        {% endfor %}
-      </div>
-
-      <div class="tab-pane fade" id="pane-hash-atend" role="tabpanel">
-        {% for b in buckets_atendimentos %}
-          <div class="hash-bucket-row {% if b.colisao %}hash-colisao{% endif %}">
-            <span class="hash-indice">bucket[{{ b.indice }}]</span>
-            {% if b.colisao %}<span class="badge text-bg-warning text-dark">Colisão ({{ b.tamanho }})</span>{% endif %}
-            {% for item in b.itens %}
-              <span class="hash-seta">→</span>
-              <span class="hash-no">
-                <strong>{{ item.rotulo }}</strong>
-                <span class="text-muted ms-1">{{ item.detalhe }}</span>
-              </span>
-            {% endfor %}
-            <span class="hash-seta">→</span>
-            <span class="hash-nulo">None</span>
-          </div>
-        {% endfor %}
+          </ol>
+        {% else %}
+          <p class="text-muted mb-0">(Nenhum médico disponível no Heap)</p>
+        {% endif %}
       </div>
     </div>
   </div>

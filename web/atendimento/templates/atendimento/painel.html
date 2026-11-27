@@ -8,9 +8,6 @@
     <p class="text-muted small mb-0">Visão consolidada do pronto atendimento em tempo real</p>
   </div>
   <div class="d-flex gap-2">
-    <a href="{% url 'diagnostico' %}" class="btn btn-outline-info text-dark fw-semibold">
-      <i class="bi bi-diagram-3-fill me-1"></i>Ver Árvores, Heaps e Hash
-    </a>
     <form method="post" action="{% url 'chamar_proximo' %}">
       {% csrf_token %}
       <input type="hidden" name="origem" value="painel">

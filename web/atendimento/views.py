@@ -19,11 +19,6 @@ from core.erros import (
 )
 from core.paciente import AGUARDANDO, CANCELADO, EM_ATENDIMENTO
 from web.atendimento.servico import obter_sistema
-from web.atendimento.visualizacao import (
-    gerar_svg_heap,
-    gerar_svg_rb,
-    preparar_buckets_hash,
-)
 
 ERROS_DOMINIO = (
     ErroValidacao,
@@ -109,15 +104,7 @@ def _linhas_pacientes(sistema: Any) -> list[dict[str, Any]]:
 
 def _destino_seguro(request: HttpRequest, padrao: str) -> str:
     origem = (request.POST.get("origem") or "").strip()
-    if origem in (
-        "painel",
-        "triagem",
-        "pacientes",
-        "medicos",
-        "atendimentos",
-        "historico",
-        "diagnostico",
-    ):
+    if origem in ("painel", "triagem", "pacientes", "medicos", "atendimentos", "historico"):
         return origem
     return padrao
 
@@ -375,28 +362,19 @@ def historico(request: HttpRequest) -> HttpResponse:
 def diagnostico(request: HttpRequest) -> HttpResponse:
     sistema = obter_sistema()
     diag = sistema.diagnostico()
-    visao = sistema.visao_estruturas()
+    medicos_disponiveis_ordem = sorted(
+        (m for m in sistema.listar_medicos() if m.situacao == "Disponível"),
+        key=lambda m: m.chave_heap(),
+    )
     return render(
         request,
         "atendimento/diagnostico.html",
         {
             "tela_ativa": "diagnostico",
             "diag": diag,
-            "visao": visao,
-            "opcoes_prioridade": OPCOES_PRIORIDADE,
-            "svg_rb_espera": gerar_svg_rb(visao.rb_espera_raiz),
-            "svg_rb_historico": gerar_svg_rb(visao.rb_historico_raiz),
-            "svg_heap_pacientes": gerar_svg_heap(visao.heap_pacientes_no_raiz, "paciente"),
-            "svg_heap_medicos": gerar_svg_heap(visao.heap_medicos_no_raiz, "medico"),
-            "buckets_pacientes": preparar_buckets_hash(visao.buckets_pacientes, "paciente"),
-            "buckets_medicos": preparar_buckets_hash(visao.buckets_medicos, "medico"),
-            "buckets_atendimentos": preparar_buckets_hash(
-                visao.buckets_atendimentos, "atendimento"
-            ),
-            "pct_carga_pacientes": min(100, round(diag.hash_pacientes.fator_carga * 100)),
-            "pct_carga_medicos": min(100, round(diag.hash_medicos.fator_carga * 100)),
-            "pct_carga_atendimentos": min(
-                100, round(diag.hash_atendimentos.fator_carga * 100)
-            ),
+            "rb_espera_lista": sistema.listar_fila_chegada(),
+            "rb_historico_lista": sistema.listar_historico_chegadas(),
+            "heap_pacientes_lista": sistema.listar_fila_prioridade(),
+            "heap_medicos_lista": medicos_disponiveis_ordem,
         },
     )

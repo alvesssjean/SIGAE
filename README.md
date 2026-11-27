@@ -49,7 +49,7 @@ python manage.py popular_demo
 docker compose up --build
 ```
 
-Acesse no navegador: `http://127.0.0.1:8000/` (e as árvores/estruturas ao vivo em `http://127.0.0.1:8000/diagnostico/`).
+Acesse no navegador: `http://127.0.0.1:8000/`
 
 - O serviço `db` sobe um **PostgreSQL 16** (`postgres:16-alpine`) com volume persistente `postgres_data` e healthcheck antes de iniciar o container `web`.
 - O Gunicorn roda com `--workers 1 --threads 1` para preservar a consistência do estado em memória das estruturas (ADR-004).
