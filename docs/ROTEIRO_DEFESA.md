@@ -33,7 +33,11 @@ Abrir as abas: **Painel geral** (`/`), **Triagem/Fila** (`/triagem/`), **Atendim
 | **I1** | Árvore Rubro-Negra (`core/rbtree.py`) | Balanceamento (casos 1, 2 e 3 na inserção; transplante, sucessor e duplo negro na remoção), rotações esquerda/direita, recoloração, `validar()`, retirada de `list`/`dict` (`em_ordem()` como gerador por ponteiro `pai`, `eventos` em `ListaEncadeada`) e apoio visual com `cli/demo_rbtree.py` e `interface_rb/`. |
 | **I2** | Min-Heaps sem vetor (`core/heap.py`) | Árvore binária completa explícita com ponteiros `item/pai/esq/dir`, localização da posição `k` pelos bits de `k` em O(log n), trocas movendo itens (não nós), mapa `id -> nó` na `HashTable` para `alterar_prioridade(id)` e `remover(id)` em O(log n), chaves de pacientes `(classe, prioridade, horario, id)` e médicos `(concluidos, seq_ultima_atribuicao, id)`, médico fora do heap quando ocupado. |
 | **I3** | Tabela Hash (`core/hash_table.py`) e Integração (`core/sistema.py`) | Função `h(id) = id % capacidade`, tupla imutável de sentinelas (O(1) sem `list`), colisão 101 e 108 com capacidade 7, redimensionamento para próximo primo >= 2x (7 → 17 → 37) ao passar de 0,75 religando os nós existentes; fluxo de rollback por pilha de compensações em `ListaEncadeada` + `transaction.atomic()` no SQLite. |
+<<<<<<< HEAD
 | **Jean** | Arquitetura, Testes e Consistência | ADRs (`docs/decisoes/`), desacoplamento views → `obter_sistema()` → porta `Repositorio`, execução de `pytest -v` (237 testes), garantia automática via AST (`test_sem_estruturas_prontas.py`), teste de arquitetura web (`test_arquitetura_web.py`), teste de rollback e consistência em 200 operações com SQLite. |
+=======
+| **Jean** | Arquitetura, Testes e Consistência | ADRs (`docs/decisoes/`), desacoplamento views → `obter_sistema()` → porta `Repositorio`, execução de `pytest -v` (182 testes), garantia automática via AST (`test_sem_estruturas_prontas.py`), teste de arquitetura web (`test_arquitetura_web.py`), teste de rollback e consistência em 200 operações com SQLite. |
+>>>>>>> origin/main
 
 ## 4. Perguntas prováveis e respostas prontas
 
