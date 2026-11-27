@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Pacientes · SIGAE WEB{% endblock %}
+
+{% block content %}
+<h1>Pacientes</h1>
+
+<div class="card">
+  <h2>Cadastrar paciente</h2>
+  <p class="nota">O ID e o horário local de chegada são gerados automaticamente pelo sistema.</p>
+  <form method="post" action="{% url 'pacientes' %}" class="linha">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="nome">Nome do paciente</label>
+      <input type="text" id="nome" name="nome" required placeholder="Nome fictício">
+    </div>
+    <div class="campo">
+      <label for="prioridade">Prioridade clínica</label>
+      <select id="prioridade" name="prioridade">
+        {% for valor, rotulo in opcoes_prioridade %}
+          <option value="{{ valor }}">{{ rotulo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Cadastrar</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Consultar paciente por ID (Tabela Hash)</h2>
+  <form method="get" action="{% url 'pacientes' %}" class="linha">
+    <div class="campo">
+      <label for="buscar_id">ID do paciente</label>
+      <input type="number" id="buscar_id" name="buscar_id" value="{{ buscar_id }}" min="1" required>
+    </div>
+    <button type="submit">Buscar</button>
+  </form>
+  {% if paciente_buscado %}
+    <p>
+      <strong>Resultado:</strong> #{{ paciente_buscado.id }} · {{ paciente_buscado.nome }} —
+      Prioridade {{ paciente_buscado.prioridade }} ({{ paciente_buscado.descricao_prioridade }}) ·
+      Chegada: {{ paciente_buscado.horario }} · Situação: <strong>{{ paciente_buscado.situacao }}</strong>
+      {% if paciente_buscado.retorno %}<span class="badge badge-retorno">Retorno</span>{% endif %}
+    </p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Todos os pacientes ({{ pacientes|length }})</h2>
+  <p class="nota">
+    Cancelar um paciente <strong>Aguardando</strong> cancela o cadastro definitivamente.
+    Cancelar um paciente <strong>Em atendimento</strong> encerra o atendimento atual e devolve o paciente à fila, logo atrás das Emergências.
+  </p>
+  {% if pacientes %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Prioridade</th>
+          <th>Chegada</th>
+          <th>Situação</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pacientes %}
+          <tr>
+            <td>#{{ p.id }}</td>
+            <td>
+              {{ p.nome }}
+              {% if p.retorno %}<span class="badge badge-retorno">Retorno</span>{% endif %}
+            </td>
+            <td class="prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
+            <td>{{ p.horario }}</td>
+            <td>
+              <span class="badge {% if p.situacao == 'Aguardando' %}sit-aguardando{% elif p.situacao == 'Em atendimento' %}sit-em-atendimento{% elif p.situacao == 'Concluído' %}sit-concluido{% else %}sit-cancelado{% endif %}">
+                {{ p.situacao }}
+              </span>
+            </td>
+            <td>
+              {% if p.situacao == SIT_AGUARDANDO %}
+                <form method="post" action="{% url 'cancelar_paciente' p.id %}" class="inline-form">
+                  {% csrf_token %}
+                  <button type="submit" class="perigo">Cancelar cadastro</button>
+                </form>
+              {% elif p.situacao == SIT_EM_ATENDIMENTO %}
+                <form method="post" action="{% url 'cancelar_paciente' p.id %}" class="inline-form">
+                  {% csrf_token %}
+                  <button type="submit" class="perigo" title="Cancela o atendimento atual e devolve o paciente à fila atrás das Emergências">Cancelar (devolver à fila)</button>
+                </form>
+              {% else %}
+                <span class="nota">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="nota">Nenhum paciente cadastrado.</p>
+  {% endif %}
+</div>
+{% endblock %}
