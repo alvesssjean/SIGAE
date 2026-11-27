@@ -2,14 +2,25 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo
+from typing import Optional
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 FORMATO_HORARIO = "%Y-%m-%d %H:%M:%S"
+FUSO_HORARIO = "America/Sao_Paulo"
+
+
+def _fuso_local() -> Optional[tzinfo]:
+    """Fuso do ADR-009; sem base de fusos instalada, cai no relógio da máquina."""
+    try:
+        return ZoneInfo(FUSO_HORARIO)
+    except ZoneInfoNotFoundError:
+        return None
 
 
 def agora_local() -> str:
-    """Devolve o horário local atual em ISO AAAA-MM-DD HH:MM:SS."""
-    return datetime.now().strftime(FORMATO_HORARIO)
+    """Devolve o horário atual de America/Sao_Paulo em ISO AAAA-MM-DD HH:MM:SS."""
+    return datetime.now(_fuso_local()).strftime(FORMATO_HORARIO)
 
 
 class RelogioFalso:
