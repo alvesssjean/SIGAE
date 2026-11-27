@@ -24,11 +24,7 @@ python manage.py runserver --noreload --nothreading
 | Tela | Rota | Funcionalidades |
 |---|---|---|
 | **Painel geral** | `/` | Totais de pacientes por situação, contagem de médicos livres/ocupados, próximo paciente da fila, lista de médicos, atendimentos em andamento e botão **Chamar próximo**. |
-<<<<<<< HEAD
 | **Pacientes** | `/pacientes/` | Cadastro de paciente (ID e horário local automáticos; o nome aceita só letras, espaços, hífen e apóstrofo, com pelo menos 2 letras, e é salvo no padrão "Maria da Silva"), consulta por ID via Tabela Hash, tabela geral e botão **Cancelar** (se *Aguardando*, cancela o cadastro; se *Em atendimento*, abre uma página de confirmação e, ao confirmar, cancela o atendimento e devolve à fila atrás das Emergências; o botão some quando o médico atual já cancelou aquele paciente). |
-=======
-| **Pacientes** | `/pacientes/` | Cadastro de paciente (ID e horário local automáticos), consulta por ID via Tabela Hash, tabela geral e botão **Cancelar** (se *Aguardando*, cancela o cadastro; se *Em atendimento*, abre uma página de confirmação e, ao confirmar, cancela o atendimento e devolve à fila atrás das Emergências; o botão some quando o médico atual já cancelou aquele paciente). |
->>>>>>> origin/main
 | **Triagem/Fila** | `/triagem/` | Fila por ordem de chamada (Min-Heap, destacando o próximo e pacientes em *Retorno*), fila por ordem de chegada (Árvore Rubro-Negra), formulário **Reclassificar** e botão **Chamar próximo paciente**. |
 | **Médicos** | `/medicos/` | Cadastro de médicos clínicos (ID automático; nome com as mesmas regras do paciente; CRM no formato **CRM/UF 000000**, com UF escolhida na lista e número só com dígitos, gerado automaticamente se ficar em branco e recusado se já existir na mesma UF), consulta por ID via Tabela Hash e listagem com situação e atendimentos concluídos. |
 | **Atendimentos** | `/atendimentos/` | Lista de atendimentos em andamento com botões **Concluir** e **Cancelar** (o botão Cancelar é ocultado quando o médico atual já cancelou aquele paciente anteriormente). |

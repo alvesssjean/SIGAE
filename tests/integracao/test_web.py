@@ -160,11 +160,7 @@ def test_cancelar_paciente_em_atendimento_pede_confirmacao(banco):
     from web.atendimento.servico import obter_sistema
 
     client = Client()
-<<<<<<< HEAD
     client.post("/medicos/", {"nome": "Ana Web", "registro": ""})
-=======
-    client.post("/medicos/", {"nome": "Dra. Web A", "registro": "CRM-WEB-A"})
->>>>>>> origin/main
     client.post("/pacientes/", {"nome": "Paciente Confirmacao", "prioridade": "3"})
     client.post("/chamar/", {"origem": "painel"})
     s = obter_sistema()
@@ -191,11 +187,7 @@ def test_tela_pacientes_esconde_cancelamento_ja_usado_pelo_medico(banco):
     from web.atendimento.servico import obter_sistema
 
     client = Client()
-<<<<<<< HEAD
     client.post("/medicos/", {"nome": "Ana Web", "registro": ""})
-=======
-    client.post("/medicos/", {"nome": "Dra. Web A", "registro": "CRM-WEB-A"})
->>>>>>> origin/main
     client.post("/pacientes/", {"nome": "Paciente Devolvido", "prioridade": "3"})
     client.post("/chamar/", {"origem": "painel"})
     s = obter_sistema()
