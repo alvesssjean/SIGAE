@@ -5,20 +5,20 @@ from django.core.management.base import BaseCommand
 from web.atendimento.servico import obter_sistema
 
 MEDICOS_FICTICIOS = (
-    ("Dra. Ana Fictícia (A)", "CRM-FIC-001"),
-    ("Dr. Bruno Fictício (B)", "CRM-FIC-002"),
-    ("Dra. Carla Fictícia (C)", "CRM-FIC-003"),
+    ("Ana Fictícia", "100001"),
+    ("Bruno Fictício", "100002"),
+    ("Carla Fictícia", "100003"),
 )
 
 PACIENTES_FICTICIOS = (
-    ("Paciente Fictício 1", 3),
-    ("Paciente Fictício 2", 1),
-    ("Paciente Fictício 3", 5),
-    ("Paciente Fictício 4", 2),
-    ("Paciente Fictício 5", 4),
-    ("Paciente Fictício 6", 2),
-    ("Paciente Fictício 7", 1),
-    ("Paciente Fictício 8", 3),
+    ("Paciente Fictício Um", 3),
+    ("Paciente Fictício Dois", 1),
+    ("Paciente Fictício Três", 5),
+    ("Paciente Fictício Quatro", 2),
+    ("Paciente Fictício Cinco", 4),
+    ("Paciente Fictício Seis", 2),
+    ("Paciente Fictício Sete", 1),
+    ("Paciente Fictício Oito", 3),
 )
 
 

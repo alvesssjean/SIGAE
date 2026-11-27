@@ -71,17 +71,17 @@ def foto(s):
 def cenario(repositorio=None):
     """Um atendimento ativo, um paciente na fila e um médico livre."""
     s = novo_sistema(repositorio)
-    s.cadastrar_medico("Dr. Ficticio A", "CRM-FIC-A")
-    s.cadastrar_medico("Dr. Ficticio B", "CRM-FIC-B")
-    s.cadastrar_paciente("Ficticio 1", 2)
-    s.cadastrar_paciente("Ficticio 2", 3)
+    s.cadastrar_medico("Ana Ficticia", "")
+    s.cadastrar_medico("Bruno Ficticio", "")
+    s.cadastrar_paciente("Ficticio Um", 2)
+    s.cadastrar_paciente("Ficticio Dois", 3)
     atendimento = s.chamar_proximo()
     return s, atendimento
 
 
 OPERACOES = {
     "cadastrar_paciente": lambda s, a: s.cadastrar_paciente("Novo", 3),
-    "cadastrar_medico": lambda s, a: s.cadastrar_medico("Novo", "CRM-FIC-N"),
+    "cadastrar_medico": lambda s, a: s.cadastrar_medico("Novo Medico", ""),
     "reclassificar": lambda s, a: s.reclassificar(2, 1),
     "cancelar_paciente": lambda s, a: s.cancelar_paciente(2),
     "chamar_proximo": lambda s, a: s.chamar_proximo(),

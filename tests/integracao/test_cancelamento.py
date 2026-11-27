@@ -24,8 +24,8 @@ def test_cancelar_devolve_atras_das_emergencias_e_mantem_chegada():
     ma, _, _ = cadastrar_medicos(s2)
     (devolvido,) = cadastrar_pacientes(s2, 4)
     atend = s2.chamar_proximo()
-    muito_urgente = s2.cadastrar_paciente("Ficticio M", 2)
-    urgente = s2.cadastrar_paciente("Ficticio U", 3)
+    muito_urgente = s2.cadastrar_paciente("Ficticio Muito Urgente", 2)
+    urgente = s2.cadastrar_paciente("Ficticio Urgente", 3)
 
     cancelado = s2.cancelar_atendimento(atend.id)
     assert cancelado.status == ATEND_CANCELADO
@@ -50,7 +50,7 @@ def test_cancelar_devolve_atras_das_emergencias_e_mantem_chegada():
     ]
 
     # Com uma Emergência: devolvido fica em 2º
-    emergencia = s2.cadastrar_paciente("Ficticio E", 1)
+    emergencia = s2.cadastrar_paciente("Ficticio Emergencia", 1)
     assert ids(s2.listar_fila_prioridade()) == [
         emergencia.id,
         devolvido.id,
@@ -62,7 +62,7 @@ def test_cancelar_devolve_atras_das_emergencias_e_mantem_chegada():
 
 def test_mesmo_medico_pode_receber_novamente_mas_nao_cancelar_duas_vezes():
     s = novo_sistema()
-    m1 = s.cadastrar_medico("Dra. A", "CRM-A")
+    m1 = s.cadastrar_medico("Ana Ficticia", "")
     (p1,) = cadastrar_pacientes(s, 3)
 
     a1 = s.chamar_proximo()

@@ -12,6 +12,14 @@ NOMES ASSUMIDOS (fora do contrato do BACKLOG 2.1, combinar com I1 e I3):
 
 INICIO = "2026-11-27 08:00:00"
 
+NUMERAIS = ("Zero", "Um", "Dois", "Tres", "Quatro", "Cinco", "Seis", "Sete", "Oito", "Nove")
+MEDICOS_FICTICIOS = ("Ana Ficticia", "Bruno Ficticio", "Carla Ficticia")
+
+
+def nome_paciente(numero):
+    """Nome válido e único sem dígitos: 12 -> "Paciente Um Dois"."""
+    return "Paciente " + " ".join(NUMERAIS[int(d)] for d in str(numero))
+
 
 def novo_sistema(repositorio=None):
     from core.relogio import RelogioFalso
@@ -31,13 +39,13 @@ def assert_consistente(sistema):
 
 def cadastrar_medicos(sistema):
     return [
-        sistema.cadastrar_medico(f"Dr. Ficticio {letra}", f"CRM-FIC-{letra}")
-        for letra in "ABC"
+        sistema.cadastrar_medico(nome, "")
+        for nome in MEDICOS_FICTICIOS
     ]
 
 
 def cadastrar_pacientes(sistema, *prioridades):
     return [
-        sistema.cadastrar_paciente(f"Paciente Ficticio {i}", prioridade)
+        sistema.cadastrar_paciente(nome_paciente(i), prioridade)
         for i, prioridade in enumerate(prioridades, start=1)
     ]
