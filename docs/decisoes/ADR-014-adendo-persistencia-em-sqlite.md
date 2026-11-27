@@ -1,24 +1,27 @@
-# ADR-013 · Adendo: persistência em SQLite
+# ADR-014: Adendo ao ADR-004, persistência em SQLite
 
-**Status:** Proposto
-**Data:** 26/11/2026
-**Decisores:** Equipe SIGAE · Professor (cliente)
+**Status:** Aceito (26/11/2026)
 
 ## Contexto
-
-O documento base (seção 3) e o ADR-013 previam estado mantido apenas em memória. Posteriormente, o professor passou a exigir persistência em banco de dados.
+O documento base (§3) mantinha o estado só em memória. O professor aceitou SQLite e execução local (BACKLOG §9.1, resposta 4), e o enunciado (§4) pede preservar o total de atendimentos de cada médico "enquanto durar a sessão ou persistência do sistema". O ADR-004 definiu a porta `Repositorio`; este adendo registra o que é gravado e como o estado volta.
 
 ## Decisão
+SQLite acessado pelo ORM do Django, só dentro de `web/` (`models.py` e `repositorio_django.py`), implementando a porta `Repositorio`. Os IDs vêm do núcleo, sem autoincremento do banco.
 
-A persistência será feita em **SQLite**, acessada pelo ORM do Django, dentro de `web/`.
+| Tabela | Campos |
+|---|---|
+| `sigae_paciente` | id, nome, horario, prioridade, situacao, retorno |
+| `sigae_medico` | id, nome, registro, situacao, concluidos, seq_ultima_atribuicao |
+| `sigae_atendimento` | id, paciente_id, medico_id, inicio, fim, status |
+| `sigae_contador` | ultimo_paciente_id, ultimo_medico_id, ultimo_atendimento_id, relogio_logico |
 
-- O banco guarda somente os registros de pacientes (id, nome, horário de chegada e prioridade).
-- O `SistemaSigae` continua sendo o único ponto de acesso às estruturas. Ao iniciar, ele reconstrói a RB-Tree, o Heap e a Hash a partir dos registros salvos.
-- A interface não consulta o banco para regras de fila. Toda operação passa pelo `SistemaSigae`, que depois sincroniza o banco.
-- Os testes de aceitação A, B e C (`tests/aceitacao/`) continuam valendo sem o banco, porque testam o núcleo em memória.
+- `medicos_que_cancelaram` não tem tabela: é reconstruída a partir dos atendimentos Cancelados (paciente_id, medico_id), conforme o ADR-012.
+- Cada operação de `Sistema` grava dentro de `repositorio.transacao()` (`transaction.atomic()`), com `update_or_create` pelo ID; se algo falhar, o banco desfaz e as compensações do ADR-003 restauram a memória.
+- Na inicialização, `obter_sistema()` chama `Sistema.carregar(RepositorioDjango())`, que lê cada tabela com `.all()`, sem ordenação, e reconstrói as três Hash, as duas Rubro-Negras, os dois Heaps, os contadores e o relógio lógico.
+- O banco nunca responde busca nem ordenação de regra de negócio (ADR-004).
+
+## Alternativas consideradas
+Gravar só os pacientes (versão proposta deste ADR): no reinício perderia médicos, contadores, relógio lógico e atendimentos, descumprindo o enunciado §4. Arquivo JSON: sem transação atômica junto com o rollback.
 
 ## Consequências
-
-- A seção 3 (fora do escopo) e a seção 9.2 (dependências) do documento base devem ser atualizadas: Django e SQLite passam a ser permitidos, e a persistência sai de "fora do escopo".
-- Se `SistemaSigae` não tiver ponto de extensão para carregar e salvar, isso exige ajuste em `core/`. Esse ajuste precisa ser combinado com o integrante 3 antes de ser feito.
-- O cronograma não muda, mas a Iteração 3 fica mais apertada. O escopo mínimo continua sendo as sete operações.
+Execução em processo único (`runserver --noreload --nothreading`). Os testes de aceitação continuam em memória com `RepositorioMemoria`; a persistência é coberta por `tests/integracao/test_rehidratacao.py` e `tests/integracao/test_consistencia_sqlite.py`. `db.sqlite3` fica fora do repositório e é criado por `migrate`; `resetar_demo` e `popular_demo` passam pelo `Sistema`.
