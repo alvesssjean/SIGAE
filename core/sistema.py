@@ -37,6 +37,14 @@ from core.paciente import (
 from core.rbtree import RBTree
 from core.relogio import agora_local
 from core.repositorio import Repositorio, RepositorioMemoria
+from core.validacao import (
+    CRM_NUMERO_MAXIMO,
+    UF_PADRAO,
+    formatar_crm,
+    ler_numero_crm,
+    normalizar_nome,
+    normalizar_uf,
+)
 
 
 class Indicadores:
@@ -251,8 +259,7 @@ class Sistema:
 
     def cadastrar_paciente(self, nome: str, prioridade: int) -> Paciente:
         with self._lock:
-            if not isinstance(nome, str) or not nome.strip():
-                raise ErroValidacao("nome do paciente é obrigatório")
+            nome = normalizar_nome(nome, "paciente")
             validar_prioridade(prioridade)
 
             id_anterior = self._ultimo_paciente_id
@@ -484,11 +491,45 @@ class Sistema:
         with self._lock:
             return self._heap_pacientes.raiz()
 
-    def cadastrar_medico(self, nome: str, registro: str) -> Medico:
+    def _registro_em_uso(self, registro: str) -> bool:
+        for medico in self._hash_medicos.valores():
+            if medico.registro == registro:
+                return True
+        return False
+
+    def _gerar_registro_crm(self, uf: str, inicio: int) -> str:
+        numero = inicio
+        while numero <= CRM_NUMERO_MAXIMO:
+            registro = formatar_crm(uf, numero)
+            if not self._registro_em_uso(registro):
+                return registro
+            numero += 1
+        raise EstadoInvalido(f"não há número de CRM livre para gerar na UF {uf}")
+
+    def cadastrar_medico(
+        self, nome: str, registro: Optional[str] = None, uf: Optional[str] = UF_PADRAO
+    ) -> Medico:
+        """Cadastra médico com nome padronizado e CRM único no formato CRM/UF 000000.
+
+        `registro` é só o número do CRM (apenas dígitos); vazio gera o próximo
+        número livre na UF. O mesmo número em UFs diferentes é outro registro.
+        """
         with self._lock:
+            nome = normalizar_nome(nome, "médico")
+            sigla = normalizar_uf(uf)
+            numero = ler_numero_crm(registro)
+
             id_anterior = self._ultimo_medico_id
             novo_id = id_anterior + 1
-            medico = Medico(novo_id, nome, registro)
+            if numero is None:
+                registro_crm = self._gerar_registro_crm(sigla, novo_id)
+            else:
+                registro_crm = formatar_crm(sigla, numero)
+                if self._registro_em_uso(registro_crm):
+                    raise ErroValidacao(
+                        f"já existe médico cadastrado com o registro {registro_crm}"
+                    )
+            medico = Medico(novo_id, nome, registro_crm)
 
             desfazer = ListaEncadeada()
             try:
