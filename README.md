@@ -77,7 +77,5 @@ python cli/demo_rbtree.py
 - [Manual de uso](manual.md)
 - [Relatório técnico](docs/RELATORIO.md)
 - [Roteiro da defesa](docs/ROTEIRO_DEFESA.md)
-- [Estudo do Min-Heap](docs/ESTUDO_HEAP.md)
 - [Decisões de arquitetura (ADRs)](docs/decisoes/)
 - [Evidências de testes](docs/evidencias/pytest.txt)
-- [Documentos de referência](docs/referencia/)

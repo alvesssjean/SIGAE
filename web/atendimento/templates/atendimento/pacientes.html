@@ -73,7 +73,7 @@
 <div class="card shadow-sm">
   <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
     <h2 class="h6 fw-bold mb-0">Todos os pacientes cadastrados</h2>
-    <span class="badge bg-primary">{{ pacientes|length }}</span>
+    <span class="badge bg-primary">{{ linhas|length }}</span>
   </div>
   <div class="card-body pb-2">
     <p class="small text-muted mb-2">
@@ -83,7 +83,7 @@
     </p>
   </div>
   <div class="table-responsive">
-    {% if pacientes %}
+    {% if linhas %}
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
@@ -96,7 +96,8 @@
           </tr>
         </thead>
         <tbody>
-          {% for p in pacientes %}
+          {% for linha in linhas %}
+            {% with p=linha.paciente %}
             <tr>
               <td class="fw-semibold">#{{ p.id }}</td>
               <td>
@@ -123,17 +124,19 @@
                     </button>
                   </form>
                 {% elif p.situacao == SIT_EM_ATENDIMENTO %}
-                  <form method="post" action="{% url 'cancelar_paciente' p.id %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-warning text-dark" title="Cancela o atendimento atual e devolve o paciente à fila atrás das Emergências">
+                  {% if linha.pode_cancelar %}
+                    <a href="{% url 'cancelar_paciente' p.id %}" class="btn btn-sm btn-outline-warning text-dark" title="Abre a confirmação: o atendimento atual é cancelado e o paciente volta à fila atrás das Emergências">
                       <i class="bi bi-arrow-return-left me-1"></i>Cancelar (devolver à fila)
-                    </button>
-                  </form>
+                    </a>
+                  {% else %}
+                    <span class="text-muted small">Cancelamento já usado por este médico</span>
+                  {% endif %}
                 {% else %}
                   <span class="text-muted small">—</span>
                 {% endif %}
               </td>
             </tr>
+            {% endwith %}
           {% endfor %}
         </tbody>
       </table>

@@ -82,6 +82,31 @@ def _enriquecer_atendimentos(sistema: Any, atendimentos_lista: Any) -> list[dict
     return linhas
 
 
+def _atendimento_ativo_de(sistema: Any, paciente_id: int) -> Optional[dict[str, Any]]:
+    """Linha enriquecida do atendimento em andamento do paciente, se houver."""
+    for item in _enriquecer_atendimentos(sistema, sistema.listar_atendimentos_ativos()):
+        if item["paciente"].id == paciente_id:
+            return item
+    return None
+
+
+def _linhas_pacientes(sistema: Any) -> list[dict[str, Any]]:
+    """Pacientes com a indicação de que o cancelamento ainda é permitido.
+
+    Para quem está Em atendimento, o cancelamento some quando o médico atual
+    já cancelou esse paciente uma vez (ADR-012), como na tela Atendimentos.
+    """
+    bloqueados = {
+        item["paciente"].id
+        for item in _enriquecer_atendimentos(sistema, sistema.listar_atendimentos_ativos())
+        if not item["pode_cancelar"]
+    }
+    return [
+        {"paciente": p, "pode_cancelar": p.id not in bloqueados}
+        for p in sistema.listar_pacientes()
+    ]
+
+
 def _destino_seguro(request: HttpRequest, padrao: str) -> str:
     origem = (request.POST.get("origem") or "").strip()
     if origem in (
@@ -168,7 +193,7 @@ def pacientes(request: HttpRequest) -> HttpResponse:
         "atendimento/pacientes.html",
         {
             "tela_ativa": "pacientes",
-            "pacientes": sistema.listar_pacientes(),
+            "linhas": _linhas_pacientes(sistema),
             "paciente_buscado": paciente_buscado,
             "buscar_id": buscar_id,
             "opcoes_prioridade": OPCOES_PRIORIDADE,
@@ -179,24 +204,43 @@ def pacientes(request: HttpRequest) -> HttpResponse:
 
 
 def cancelar_paciente(request: HttpRequest, paciente_id: int) -> HttpResponse:
-    if request.method == "POST":
-        sistema = obter_sistema()
+    sistema = obter_sistema()
+    if request.method != "POST":
+        # GET: página de confirmação explicando o efeito antes de cancelar (T31).
+        paciente = _executar(request, lambda: sistema.consultar_paciente(paciente_id))
+        if paciente is None:
+            return redirect("pacientes")
+        if paciente.situacao not in (AGUARDANDO, EM_ATENDIMENTO):
+            messages.error(
+                request, "não é possível cancelar paciente já concluído ou cancelado"
+            )
+            return redirect("pacientes")
+        return render(
+            request,
+            "atendimento/confirmar_cancelamento.html",
+            {
+                "tela_ativa": "pacientes",
+                "paciente": paciente,
+                "item": _atendimento_ativo_de(sistema, paciente.id),
+                "SIT_EM_ATENDIMENTO": EM_ATENDIMENTO,
+            },
+        )
 
-        def cancelar() -> Any:
-            antes = sistema.consultar_paciente(paciente_id).situacao
-            paciente = sistema.cancelar_paciente(paciente_id)
-            return (antes, paciente)
+    def cancelar() -> Any:
+        antes = sistema.consultar_paciente(paciente_id).situacao
+        paciente = sistema.cancelar_paciente(paciente_id)
+        return (antes, paciente)
 
-        def mensagem(res: Any) -> str:
-            antes, paciente = res
-            if antes == EM_ATENDIMENTO:
-                return (
-                    f"Atendimento do paciente #{paciente.id} ({paciente.nome}) cancelado: "
-                    "ele voltou para a frente da fila, logo atrás das Emergências."
-                )
-            return f"Cadastro do paciente #{paciente.id} ({paciente.nome}) cancelado."
+    def mensagem(res: Any) -> str:
+        antes, paciente = res
+        if antes == EM_ATENDIMENTO:
+            return (
+                f"Atendimento do paciente #{paciente.id} ({paciente.nome}) cancelado: "
+                "ele voltou para a frente da fila, logo atrás das Emergências."
+            )
+        return f"Cadastro do paciente #{paciente.id} ({paciente.nome}) cancelado."
 
-        _executar(request, cancelar, mensagem)
+    _executar(request, cancelar, mensagem)
     return redirect("pacientes")
 
 

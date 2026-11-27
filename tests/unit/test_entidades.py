@@ -1,6 +1,8 @@
 """T10 / H01 / H08: testes unitários das entidades e relógio."""
 
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pytest
 
@@ -100,6 +102,14 @@ def test_excecoes_existem():
 def test_relogio_local_e_falso():
     valor = agora_local()
     assert re.match(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", valor)
+
+    lido = datetime.strptime(valor, "%Y-%m-%d %H:%M:%S")
+    try:
+        fuso = ZoneInfo("America/Sao_Paulo")
+    except ZoneInfoNotFoundError:
+        fuso = None
+    esperado = datetime.now(fuso).replace(tzinfo=None)
+    assert abs((esperado - lido).total_seconds()) < 5
 
     falso = RelogioFalso("2026-11-27 08:00:00")
     assert falso() == "2026-11-27 08:00:00"
