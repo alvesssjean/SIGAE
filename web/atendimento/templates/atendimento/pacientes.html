@@ -45,12 +45,12 @@
 </div>
 
 <div class="card">
-  <h2>Todos os pacientes ({{ pacientes|length }})</h2>
+  <h2>Todos os pacientes ({{ linhas|length }})</h2>
   <p class="nota">
     Cancelar um paciente <strong>Aguardando</strong> cancela o cadastro definitivamente.
     Cancelar um paciente <strong>Em atendimento</strong> encerra o atendimento atual e devolve o paciente à fila, logo atrás das Emergências.
   </p>
-  {% if pacientes %}
+  {% if linhas %}
     <table>
       <thead>
         <tr>
@@ -63,7 +63,8 @@
         </tr>
       </thead>
       <tbody>
-        {% for p in pacientes %}
+        {% for linha in linhas %}
+          {% with p=linha.paciente %}
           <tr>
             <td>#{{ p.id }}</td>
             <td>
@@ -84,15 +85,17 @@
                   <button type="submit" class="perigo">Cancelar cadastro</button>
                 </form>
               {% elif p.situacao == SIT_EM_ATENDIMENTO %}
-                <form method="post" action="{% url 'cancelar_paciente' p.id %}" class="inline-form">
-                  {% csrf_token %}
-                  <button type="submit" class="perigo" title="Cancela o atendimento atual e devolve o paciente à fila atrás das Emergências">Cancelar (devolver à fila)</button>
-                </form>
+                {% if linha.pode_cancelar %}
+                  <a href="{% url 'cancelar_paciente' p.id %}" class="botao perigo" title="Abre a confirmação: o atendimento atual é cancelado e o paciente volta à fila atrás das Emergências">Cancelar (devolver à fila)</a>
+                {% else %}
+                  <span class="nota">Cancelamento já usado por este médico</span>
+                {% endif %}
               {% else %}
                 <span class="nota">—</span>
               {% endif %}
             </td>
           </tr>
+          {% endwith %}
         {% endfor %}
       </tbody>
     </table>
