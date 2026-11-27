@@ -31,12 +31,12 @@ def test_rehidratacao_preserva_estado_completo_e_cancelamentos(banco):
     relogio = RelogioFalso("2026-11-27 08:00:00")
     s1 = Sistema.carregar(repo, relogio=relogio)
 
-    m1 = s1.cadastrar_medico("Dra. A", "CRM-A")
-    m2 = s1.cadastrar_medico("Dr. B", "CRM-B")
-    p1 = s1.cadastrar_paciente("Paciente 1", 4)
-    p2 = s1.cadastrar_paciente("Paciente 2", 2)
-    p3 = s1.cadastrar_paciente("Paciente 3", 5)
-    p4 = s1.cadastrar_paciente("Paciente 4", 1)
+    m1 = s1.cadastrar_medico("Ana Ficticia", "")
+    m2 = s1.cadastrar_medico("Bruno Ficticio", "")
+    p1 = s1.cadastrar_paciente("Paciente Um", 4)
+    p2 = s1.cadastrar_paciente("Paciente Dois", 2)
+    p3 = s1.cadastrar_paciente("Paciente Tres", 5)
+    p4 = s1.cadastrar_paciente("Paciente Quatro", 1)
 
     # Chama p4 (Emergência -> m1) e conclui
     a1 = s1.chamar_proximo()
@@ -68,7 +68,7 @@ def test_rehidratacao_preserva_estado_completo_e_cancelamentos(banco):
         s2.cancelar_atendimento(a3.id)
 
     # Contadores de ID continuam crescentes sem colidir
-    novo = s2.cadastrar_paciente("Paciente 5", 2)
+    novo = s2.cadastrar_paciente("Paciente Cinco", 2)
     assert novo.id == 5
     assert_consistente(s2)
 

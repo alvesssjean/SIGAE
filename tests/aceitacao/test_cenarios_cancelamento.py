@@ -25,10 +25,10 @@ def test_devolvido_atras_da_emergencia():
     cadastrar_medicos(s)
     (devolvido,) = cadastrar_pacientes(s, 4)
     atendimento = s.chamar_proximo()
-    muito_urgente = s.cadastrar_paciente("Ficticio M", 2)
+    muito_urgente = s.cadastrar_paciente("Ficticio Muito Urgente", 2)
     s.cancelar_atendimento(atendimento.id)
     assert ids(s.listar_fila_prioridade()) == [devolvido.id, muito_urgente.id]
-    emergencia = s.cadastrar_paciente("Ficticio E", 1)
+    emergencia = s.cadastrar_paciente("Ficticio Emergencia", 1)
     assert ids(s.listar_fila_prioridade()) == [
         emergencia.id,
         devolvido.id,
@@ -45,7 +45,7 @@ def atender_e_cancelar(s):
 
 def um_medico_um_paciente():
     s = novo_sistema()
-    medico = s.cadastrar_medico("Dr. Ficticio A", "CRM-FIC-A")
+    medico = s.cadastrar_medico("Ana Ficticia", "")
     cadastrar_pacientes(s, 3)
     return s, medico
 

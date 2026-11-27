@@ -18,6 +18,7 @@ from core.erros import (
     SemMedicoDisponivel,
 )
 from core.paciente import AGUARDANDO, CANCELADO, EM_ATENDIMENTO
+from core.validacao import NOME_TAMANHO_MAXIMO, UF_PADRAO, UFS
 from web.atendimento.servico import obter_sistema
 
 ERROS_DOMINIO = (
@@ -184,6 +185,7 @@ def pacientes(request: HttpRequest) -> HttpResponse:
             "paciente_buscado": paciente_buscado,
             "buscar_id": buscar_id,
             "opcoes_prioridade": OPCOES_PRIORIDADE,
+            "nome_maximo": NOME_TAMANHO_MAXIMO,
             "SIT_AGUARDANDO": AGUARDANDO,
             "SIT_EM_ATENDIMENTO": EM_ATENDIMENTO,
         },
@@ -270,12 +272,17 @@ def medicos(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         nome = request.POST.get("nome", "")
         registro = request.POST.get("registro", "")
+        uf = request.POST.get("uf", "")
+        gerado = not registro.strip()
 
-        _executar(
-            request,
-            lambda: sistema.cadastrar_medico(nome, registro),
-            lambda m: f"Médico #{m.id} ({m.nome} · {m.registro}) cadastrado como {m.situacao}.",
-        )
+        def mensagem(m: Any) -> str:
+            origem = " (gerado automaticamente)" if gerado else ""
+            return (
+                f"Médico #{m.id} ({m.nome} · {m.registro}{origem}) "
+                f"cadastrado como {m.situacao}."
+            )
+
+        _executar(request, lambda: sistema.cadastrar_medico(nome, registro, uf), mensagem)
         return redirect("medicos")
 
     medico_buscado = None
@@ -296,6 +303,9 @@ def medicos(request: HttpRequest) -> HttpResponse:
             "medicos": sistema.listar_medicos(),
             "medico_buscado": medico_buscado,
             "buscar_id": buscar_id,
+            "ufs": UFS,
+            "uf_padrao": UF_PADRAO,
+            "nome_maximo": NOME_TAMANHO_MAXIMO,
         },
     )
 

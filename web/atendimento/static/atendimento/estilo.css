@@ -288,6 +288,36 @@ th {
   color: var(--muted);
 }
 
+.grupo-crm {
+  display: flex;
+  align-items: stretch;
+}
+
+.grupo-crm .prefixo {
+  display: flex;
+  align-items: center;
+  padding: 0 0.55rem;
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  background: #f1f5f9;
+  color: var(--muted);
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+.grupo-crm select {
+  border-radius: 0;
+}
+
+.grupo-crm input {
+  width: 7.5rem;
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
 .inline-form {
   display: inline;
 }

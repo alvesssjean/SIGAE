@@ -23,21 +23,70 @@ from tests.apoio import (
 
 def test_cadastrar_consultar_listar_medico():
     s = novo_sistema()
-    m1 = s.cadastrar_medico("Dra. Ficticia A", "CRM-FIC-A")
-    m2 = s.cadastrar_medico("Dr. Ficticio B", "CRM-FIC-B")
+    m1 = s.cadastrar_medico("Ana Ficticia", "123")
+    m2 = s.cadastrar_medico("bruno DA silva", "", "sp")
     assert m1.id == 1
     assert m2.id == 2
     assert m1.situacao == DISPONIVEL
     assert m1.concluidos == 0
-    assert s.consultar_medico(m1.id).nome == "Dra. Ficticia A"
+    assert s.consultar_medico(m1.id).nome == "Ana Ficticia"
     assert ids(s.listar_medicos()) == [m1.id, m2.id]
 
     with pytest.raises(ErroValidacao):
-        s.cadastrar_medico("", "CRM-X")
+        s.cadastrar_medico("", "1")
     with pytest.raises(ErroValidacao):
-        s.cadastrar_medico("Dr. X", "")
+        s.cadastrar_medico("Dr. Xavier", "")
     with pytest.raises(NaoEncontrado):
         s.consultar_medico(999)
+    assert m1.registro == "CRM/RJ 000123"
+    assert m2.nome == "Bruno da Silva"
+    assert m2.registro == "CRM/SP 000002"
+    assert_consistente(s)
+
+
+def test_crm_repetido_e_recusado_sem_alterar_estado():
+    s = novo_sistema()
+    m1 = s.cadastrar_medico("Ana Ficticia", "4567", "RJ")
+    for numero in ("4567", "004567", " 4567 "):
+        with pytest.raises(ErroValidacao, match="já existe médico"):
+            s.cadastrar_medico("Bruno Ficticio", numero, "rj")
+    m2 = s.cadastrar_medico("Bruno Ficticio", "4567", "SP")
+    assert m2.id == m1.id + 1
+    assert m2.registro == "CRM/SP 004567"
+    assert ids(s.listar_medicos()) == [m1.id, m2.id]
+    assert_consistente(s)
+
+
+def test_crm_gerado_automaticamente_e_unico():
+    s = novo_sistema()
+    manual = s.cadastrar_medico("Ana Ficticia", "2")
+    auto1 = s.cadastrar_medico("Bruno Ficticio", "")
+    auto2 = s.cadastrar_medico("Carla Ficticia", None)
+    assert manual.registro == "CRM/RJ 000002"
+    assert auto1.registro == "CRM/RJ 000003"
+    assert auto2.registro == "CRM/RJ 000004"
+    with pytest.raises(ErroValidacao, match="já existe médico"):
+        s.cadastrar_medico("Diego Ficticio", "3")
+    assert_consistente(s)
+
+
+@pytest.mark.parametrize(
+    "nome, registro, uf",
+    [
+        ("Dra. Ana", "", "RJ"),
+        ("Ana 2", "", "RJ"),
+        ("A", "", "RJ"),
+        ("Ana Ficticia", "12.345", "RJ"),
+        ("Ana Ficticia", "CRM123", "RJ"),
+        ("Ana Ficticia", "1234567", "RJ"),
+        ("Ana Ficticia", "", "XX"),
+    ],
+)
+def test_cadastro_de_medico_invalido_nao_consome_id(nome, registro, uf):
+    s = novo_sistema()
+    with pytest.raises(ErroValidacao):
+        s.cadastrar_medico(nome, registro, uf)
+    assert s.cadastrar_medico("Ana Ficticia", "").id == 1
     assert_consistente(s)
 
 

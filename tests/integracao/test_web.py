@@ -68,11 +68,48 @@ def test_dado_invalido_nao_altera_estado_nem_da_500(banco):
     assert s.validar_indices().ok
 
 
+def test_nome_com_numero_ou_caractere_especial_e_recusado(banco):
+    from web.atendimento.servico import obter_sistema
+
+    client = Client()
+    resp = client.post("/pacientes/", {"nome": "Paciente 1", "prioridade": "3"}, follow=True)
+    assert "não pode conter números" in resp.content.decode("utf-8")
+    resp = client.post("/medicos/", {"nome": "Dra. Ana", "registro": "", "uf": "RJ"}, follow=True)
+    assert "não pode conter caracteres especiais" in resp.content.decode("utf-8")
+
+    resp = client.post("/pacientes/", {"nome": "maria DA silva", "prioridade": "3"}, follow=True)
+    assert "Maria da Silva" in resp.content.decode("utf-8")
+    s = obter_sistema()
+    assert len(s.listar_pacientes()) == 1
+    assert len(s.listar_medicos()) == 0
+
+
+def test_cadastro_de_medico_com_crm_automatico_mascara_e_sem_repeticao(banco):
+    from web.atendimento.servico import obter_sistema
+
+    client = Client()
+    resp = client.post("/medicos/", {"nome": "Ana Web", "registro": "", "uf": "RJ"}, follow=True)
+    html = resp.content.decode("utf-8")
+    assert "CRM/RJ 000001 (gerado automaticamente)" in html
+
+    resp = client.post("/medicos/", {"nome": "Bruno Web", "registro": "52123", "uf": "MG"}, follow=True)
+    assert "CRM/MG 052123" in resp.content.decode("utf-8")
+
+    resp = client.post("/medicos/", {"nome": "Carla Web", "registro": "052123", "uf": "MG"}, follow=True)
+    assert "já existe médico cadastrado com o registro CRM/MG 052123" in resp.content.decode("utf-8")
+
+    resp = client.post("/medicos/", {"nome": "Carla Web", "registro": "52.123", "uf": "MG"}, follow=True)
+    assert "apenas números" in resp.content.decode("utf-8")
+
+    registros = [m.registro for m in obter_sistema().listar_medicos()]
+    assert registros == ["CRM/RJ 000001", "CRM/MG 052123"]
+
+
 def test_cancelar_atendimento_via_web_e_repetir_pelo_mesmo_medico_mostra_erro(banco):
     from web.atendimento.servico import obter_sistema
 
     client = Client()
-    client.post("/medicos/", {"nome": "Dra. Web A", "registro": "CRM-WEB-A"})
+    client.post("/medicos/", {"nome": "Ana Web", "registro": ""})
     client.post("/pacientes/", {"nome": "Paciente Pouco Urgente", "prioridade": "4"})
 
     # Chama o paciente
@@ -123,7 +160,7 @@ def test_cancelar_paciente_em_atendimento_pede_confirmacao(banco):
     from web.atendimento.servico import obter_sistema
 
     client = Client()
-    client.post("/medicos/", {"nome": "Dra. Web A", "registro": "CRM-WEB-A"})
+    client.post("/medicos/", {"nome": "Ana Web", "registro": ""})
     client.post("/pacientes/", {"nome": "Paciente Confirmacao", "prioridade": "3"})
     client.post("/chamar/", {"origem": "painel"})
     s = obter_sistema()
@@ -150,7 +187,7 @@ def test_tela_pacientes_esconde_cancelamento_ja_usado_pelo_medico(banco):
     from web.atendimento.servico import obter_sistema
 
     client = Client()
-    client.post("/medicos/", {"nome": "Dra. Web A", "registro": "CRM-WEB-A"})
+    client.post("/medicos/", {"nome": "Ana Web", "registro": ""})
     client.post("/pacientes/", {"nome": "Paciente Devolvido", "prioridade": "3"})
     client.post("/chamar/", {"origem": "painel"})
     s = obter_sistema()

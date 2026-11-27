@@ -6,6 +6,7 @@ from core.medico import DISPONIVEL
 from core.paciente import AGUARDANDO, CANCELADO, CONCLUIDO, EM_ATENDIMENTO
 from core.relogio import RelogioFalso
 from core.sistema import Sistema
+from tests.apoio import NUMERAIS, nome_paciente
 
 
 def test_consistencia_200_operacoes_estruturas_e_sqlite(banco):
@@ -17,7 +18,7 @@ def test_consistencia_200_operacoes_estruturas_e_sqlite(banco):
     s = Sistema.carregar(repo, relogio=RelogioFalso("2026-11-27 08:00:00"))
 
     for i in range(1, 5):
-        s.cadastrar_medico(f"Dr. Ficticio {i}", f"CRM-FIC-{i}")
+        s.cadastrar_medico(f"Medico Ficticio {NUMERAIS[i]}", "")
 
     for passo in range(1, 201):
         aguardando = [p for p in s.listar_pacientes() if p.situacao == AGUARDANDO]
@@ -34,7 +35,7 @@ def test_consistencia_200_operacoes_estruturas_e_sqlite(banco):
 
         acao = rng.choice(escolhas)
         if acao == "cadastrar":
-            s.cadastrar_paciente(f"Paciente {passo}", rng.randint(1, 5))
+            s.cadastrar_paciente(nome_paciente(passo), rng.randint(1, 5))
         elif acao == "reclassificar":
             alvo = rng.choice(aguardando)
             s.reclassificar(alvo.id, rng.randint(1, 5))
