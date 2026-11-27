@@ -6,15 +6,32 @@
 
 <div class="card">
   <h2>Cadastrar médico</h2>
+  <p class="nota">
+    O nome aceita apenas letras, espaços, hífen e apóstrofo, com pelo menos 2 letras, e é salvo no padrão "Ana da Silva".
+    O CRM é exibido como <strong>CRM/UF 000000</strong> e não pode se repetir; deixe o número em branco para o sistema gerar um automaticamente.
+  </p>
   <form method="post" action="{% url 'medicos' %}" class="linha">
     {% csrf_token %}
     <div class="campo">
       <label for="nome">Nome do médico</label>
-      <input type="text" id="nome" name="nome" required placeholder="Dra. Fictícia">
+      <input type="text" id="nome" name="nome" required minlength="2" maxlength="{{ nome_maximo }}"
+             pattern="[A-Za-zÀ-ÖØ-öø-ÿ' \-]+" autocomplete="off"
+             title="Apenas letras, espaços, hífen e apóstrofo (sem números nem caracteres especiais)"
+             placeholder="Ana Fictícia">
     </div>
     <div class="campo">
-      <label for="registro">Registro profissional fictício</label>
-      <input type="text" id="registro" name="registro" required placeholder="CRM-FIC-001">
+      <label for="registro">Registro CRM (número opcional)</label>
+      <div class="grupo-crm">
+        <span class="prefixo">CRM/</span>
+        <select id="uf" name="uf" aria-label="UF do CRM">
+          {% for sigla in ufs %}
+            <option value="{{ sigla }}"{% if sigla == uf_padrao %} selected{% endif %}>{{ sigla }}</option>
+          {% endfor %}
+        </select>
+        <input type="text" id="registro" name="registro" inputmode="numeric" maxlength="6"
+               pattern="[0-9]{1,6}" autocomplete="off" placeholder="000000"
+               title="Apenas números, até 6 dígitos. Em branco, o número é gerado automaticamente.">
+      </div>
     </div>
     <button type="submit">Cadastrar</button>
   </form>

@@ -6,12 +6,18 @@
 
 <div class="card">
   <h2>Cadastrar paciente</h2>
-  <p class="nota">O ID e o horário local de chegada são gerados automaticamente pelo sistema.</p>
+  <p class="nota">
+    O ID e o horário local de chegada são gerados automaticamente pelo sistema.
+    O nome aceita apenas letras, espaços, hífen e apóstrofo, com pelo menos 2 letras, e é salvo no padrão "Maria da Silva".
+  </p>
   <form method="post" action="{% url 'pacientes' %}" class="linha">
     {% csrf_token %}
     <div class="campo">
       <label for="nome">Nome do paciente</label>
-      <input type="text" id="nome" name="nome" required placeholder="Nome fictício">
+      <input type="text" id="nome" name="nome" required minlength="2" maxlength="{{ nome_maximo }}"
+             pattern="[A-Za-zÀ-ÖØ-öø-ÿ' \-]+" autocomplete="off"
+             title="Apenas letras, espaços, hífen e apóstrofo (sem números nem caracteres especiais)"
+             placeholder="Nome fictício">
     </div>
     <div class="campo">
       <label for="prioridade">Prioridade clínica</label>
