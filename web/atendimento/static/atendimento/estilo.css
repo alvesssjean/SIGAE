@@ -162,26 +162,33 @@ select {
   background: #ffffff;
 }
 
-button {
+button,
+a.botao {
+  display: inline-block;
   padding: 0.46rem 0.85rem;
   border: 1px solid var(--primary);
   background: var(--primary);
   color: #ffffff;
   border-radius: 4px;
   font-size: 0.9rem;
+  line-height: normal;
+  text-decoration: none;
   cursor: pointer;
 }
 
-button:hover {
+button:hover,
+a.botao:hover {
   background: var(--primary-dark);
 }
 
-button.perigo {
+button.perigo,
+a.botao.perigo {
   background: var(--danger);
   border-color: var(--danger);
 }
 
-button.perigo:hover {
+button.perigo:hover,
+a.botao.perigo:hover {
   background: #991b1b;
 }
 

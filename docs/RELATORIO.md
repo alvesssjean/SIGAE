@@ -93,13 +93,15 @@ Conforme o [ADR-012](decisoes/ADR-012-cancelamento-de-atendimento.md), cancelar 
 - [ADR-010](decisoes/ADR-010-nucleo-sem-colecoes-prontas.md) · Núcleo sem coleções prontas e escopo da camada Django
 - [ADR-011](decisoes/ADR-011-django-e-testes.md) · Django 5.2 e testes sem `pytest-django`
 - [ADR-012](decisoes/ADR-012-cancelamento-de-atendimento.md) · Cancelamento de atendimento uma vez por médico
+- [ADR-013](decisoes/ADR-013-framework-web.md) · Django como framework da interface web e terminal fora da entrega
+- [ADR-014](decisoes/ADR-014-adendo-persistencia-em-sqlite.md) · Adendo ao ADR-004: tabelas do SQLite, gravação e rehidratação
 
 ## 7. Resultados dos testes
 
-A suíte executada com `pytest -v` (evidência completa em [docs/evidencias/pytest.txt](evidencias/pytest.txt)) obteve **175 testes aprovados, 0 falhas e 0 xfails**:
+A suíte executada com `pytest -v` (evidência completa em [docs/evidencias/pytest.txt](evidencias/pytest.txt)) obteve **182 testes aprovados, 0 falhas e 0 xfails**:
 
 - **Unitários (`tests/unit/`):** `ListaEncadeada`, `HashTable` (colisões 101/108, redimensionamento, remoções), `MinHeap` (incluindo 500 operações aleatórias), `MinHeap` de médicos, entidades/relógio, `RBTree` (inserções/remoções aleatórias) e guarda AST `test_sem_estruturas_prontas.py` em todos os arquivos de `core/`.
-- **Integração (`tests/integracao/`):** operações de pacientes, médicos, cancelamento, rollback em falhas de gravação e de estrutura (12 cenários), rehidratação e transação parcial no SQLite, consistência estruturas × SQLite em 200 operações pseudoaleatórias, smoke tests web (7 rotas + fluxos POST) e teste estático de arquitetura web.
+- **Integração (`tests/integracao/`):** operações de pacientes, médicos, cancelamento, rollback em falhas de gravação e de estrutura (16 cenários, cobrindo as 7 operações mutáveis), rehidratação e transação parcial no SQLite, consistência estruturas × SQLite em 200 operações pseudoaleatórias, smoke tests web (7 rotas, fluxos POST e confirmação de cancelamento) e teste estático de arquitetura web.
 - **Aceitação (`tests/aceitacao/`):** cenários A, A2, B, C, C2, C3, C4, P1, M1–M5 e K1–K5, todos encerrando com `validar_indices().ok`.
 
 ## 8. Limitações conhecidas

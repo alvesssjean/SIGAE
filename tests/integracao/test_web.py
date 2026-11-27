@@ -117,3 +117,64 @@ def test_cancelar_atendimento_via_web_e_repetir_pelo_mesmo_medico_mostra_erro(ba
     assert "já cancelou o atendimento deste paciente" in resp_erro.content.decode("utf-8").lower()
     assert len(s.listar_atendimentos_ativos()) == 1
     assert s.validar_indices().ok
+
+
+def test_cancelar_paciente_em_atendimento_pede_confirmacao(banco):
+    from web.atendimento.servico import obter_sistema
+
+    client = Client()
+    client.post("/medicos/", {"nome": "Dra. Web A", "registro": "CRM-WEB-A"})
+    client.post("/pacientes/", {"nome": "Paciente Confirmacao", "prioridade": "3"})
+    client.post("/chamar/", {"origem": "painel"})
+    s = obter_sistema()
+
+    lista = client.get("/pacientes/").content.decode("utf-8")
+    assert 'href="/pacientes/1/cancelar/"' in lista
+
+    # GET só mostra a confirmação e não altera nada
+    resp = client.get("/pacientes/1/cancelar/")
+    assert resp.status_code == 200
+    html = resp.content.decode("utf-8")
+    assert "Confirmar cancelamento" in html
+    assert "volta para a fila" in html
+    assert s.consultar_paciente(1).situacao == "Em atendimento"
+
+    # POST confirma: o paciente volta para a fila
+    client.post("/pacientes/1/cancelar/", follow=True)
+    assert s.consultar_paciente(1).situacao == "Aguardando"
+    assert s.consultar_paciente(1).retorno is True
+    assert s.validar_indices().ok
+
+
+def test_tela_pacientes_esconde_cancelamento_ja_usado_pelo_medico(banco):
+    from web.atendimento.servico import obter_sistema
+
+    client = Client()
+    client.post("/medicos/", {"nome": "Dra. Web A", "registro": "CRM-WEB-A"})
+    client.post("/pacientes/", {"nome": "Paciente Devolvido", "prioridade": "3"})
+    client.post("/chamar/", {"origem": "painel"})
+    s = obter_sistema()
+    client.post(f"/atendimentos/{s.listar_atendimentos_ativos().cabeca.valor.id}/cancelar/")
+    # A mesma médica recebe o paciente de novo
+    client.post("/chamar/", {"origem": "painel"})
+
+    lista = client.get("/pacientes/").content.decode("utf-8")
+    assert 'href="/pacientes/1/cancelar/"' not in lista
+    assert "Cancelamento já usado por este médico" in lista
+
+    confirmacao = client.get("/pacientes/1/cancelar/").content.decode("utf-8")
+    assert "o cancelamento não está disponível" in confirmacao
+    assert 'action="/pacientes/1/cancelar/"' not in confirmacao
+
+
+def test_confirmacao_de_paciente_inexistente_ou_encerrado_redireciona(banco):
+    client = Client()
+    resp = client.get("/pacientes/999/cancelar/", follow=True)
+    assert resp.status_code == 200
+    assert "não encontrado" in resp.content.decode("utf-8")
+
+    client.post("/pacientes/", {"nome": "Paciente Encerrado", "prioridade": "3"})
+    client.post("/pacientes/1/cancelar/")
+    resp = client.get("/pacientes/1/cancelar/", follow=True)
+    assert resp.status_code == 200
+    assert "já concluído ou cancelado" in resp.content.decode("utf-8")

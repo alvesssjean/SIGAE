@@ -4,77 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterator, Optional
 
-try:
-    from core.hash_table import HashTable
-except ImportError:
-    class _NoMapaStub:
-        __slots__ = ("id", "valor", "proximo")
-
-        def __init__(
-            self, chave_id: int, valor: Any, proximo: Optional[_NoMapaStub] = None
-        ) -> None:
-            self.id = chave_id
-            self.valor = valor
-            self.proximo = proximo
-
-    class HashTable:  # type: ignore[no-redef]
-        """Stub temporário da interface HashTable até T07 ser mesclada (TASKS T09)."""
-
-        def __init__(self) -> None:
-            self._cabeca: Optional[_NoMapaStub] = None
-            self._tamanho: int = 0
-
-        def tamanho(self) -> int:
-            return self._tamanho
-
-        def contem(self, chave_id: int) -> bool:
-            atual = self._cabeca
-            while atual is not None:
-                if atual.id == chave_id:
-                    return True
-                atual = atual.proximo
-            return False
-
-        def buscar(self, chave_id: int) -> Any:
-            atual = self._cabeca
-            while atual is not None:
-                if atual.id == chave_id:
-                    return atual.valor
-                atual = atual.proximo
-            return None
-
-        def inserir(self, chave_id: int, valor: Any) -> None:
-            if self.contem(chave_id):
-                raise ValueError(f"chave duplicada: {chave_id}")
-            self._cabeca = _NoMapaStub(chave_id, valor, self._cabeca)
-            self._tamanho += 1
-
-        def atualizar(self, chave_id: int, valor: Any) -> None:
-            atual = self._cabeca
-            while atual is not None:
-                if atual.id == chave_id:
-                    atual.valor = valor
-                    return
-                atual = atual.proximo
-            raise KeyError(f"chave não encontrada: {chave_id}")
-
-        def remover(self, chave_id: int) -> bool:
-            anterior: Optional[_NoMapaStub] = None
-            atual = self._cabeca
-            while atual is not None:
-                if atual.id == chave_id:
-                    if anterior is None:
-                        self._cabeca = atual.proximo
-                    else:
-                        anterior.proximo = atual.proximo
-                    self._tamanho -= 1
-                    return True
-                anterior = atual
-                atual = atual.proximo
-            return False
-
-        def validar(self) -> None:
-            return None
+from core.hash_table import HashTable
 
 
 class HeapInvalidoError(ValueError):

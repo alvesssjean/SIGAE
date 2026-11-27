@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Confirmar cancelamento · SIGAE WEB{% endblock %}
+
+{% block content %}
+<h1>Confirmar cancelamento</h1>
+
+<div class="card">
+  <p>
+    <strong>#{{ paciente.id }} · {{ paciente.nome }}</strong> —
+    Prioridade {{ paciente.prioridade }} ({{ paciente.descricao_prioridade }}) ·
+    Chegada: {{ paciente.horario }} · Situação: <strong>{{ paciente.situacao }}</strong>
+  </p>
+
+  {% if paciente.situacao == SIT_EM_ATENDIMENTO %}
+    {% if item %}
+      <p>Em atendimento com <strong>#{{ item.medico.id }} · {{ item.medico.nome }}</strong> ({{ item.medico.registro }}) desde {{ item.atendimento.inicio }}.</p>
+    {% endif %}
+    <p class="nota">
+      O atendimento atual será <strong>cancelado</strong> e o paciente <strong>volta para a fila</strong>,
+      marcado como Retorno, logo atrás das Emergências e à frente das prioridades 2 a 5.
+      O médico volta a Disponível sem somar atendimento e não poderá cancelar este paciente outra vez.
+    </p>
+  {% else %}
+    <p class="nota">
+      O cadastro será <strong>cancelado definitivamente</strong>: o paciente sai da fila
+      e continua apenas no histórico como Cancelado.
+    </p>
+  {% endif %}
+
+  {% if item and not item.pode_cancelar %}
+    <p class="nota">Este médico já cancelou o atendimento deste paciente uma vez; o cancelamento não está disponível.</p>
+    <a href="{% url 'pacientes' %}" class="botao">Voltar</a>
+  {% else %}
+    <form method="post" action="{% url 'cancelar_paciente' paciente.id %}" class="inline-form">
+      {% csrf_token %}
+      <button type="submit" class="perigo">Confirmar cancelamento</button>
+    </form>
+    <a href="{% url 'pacientes' %}" class="botao">Voltar</a>
+  {% endif %}
+</div>
+{% endblock %}

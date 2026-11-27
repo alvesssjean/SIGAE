@@ -1,7 +1,7 @@
 """T19 / H19: uma falha no meio da operação não altera o estado.
 
-A parte de falha em estrutura assume os métodos HashTable.inserir,
-RBTree.inserir e MinHeap.inserir.
+A parte de falha em estrutura faz um método de RBTree, MinHeap ou HashTable
+falhar no meio de cada uma das 7 operações mutáveis do sistema.
 """
 
 import importlib
@@ -104,21 +104,25 @@ def test_falha_na_gravacao(nome):
 
 
 @pytest.mark.parametrize(
-    "operacao, modulo, classe",
+    "operacao, modulo, classe, metodo",
     [
-        ("cadastrar_paciente", "core.rbtree", "RBTree"),
-        ("cadastrar_paciente", "core.heap", "MinHeap"),
-        ("cadastrar_medico", "core.heap", "MinHeap"),
-        ("cancelar_atendimento", "core.heap", "MinHeap"),
-        ("concluir_atendimento", "core.heap", "MinHeap"),
+        ("cadastrar_paciente", "core.rbtree", "RBTree", "inserir"),
+        ("cadastrar_paciente", "core.heap", "MinHeap", "inserir"),
+        ("cadastrar_medico", "core.heap", "MinHeap", "inserir"),
+        ("reclassificar", "core.heap", "MinHeap", "alterar_prioridade"),
+        ("cancelar_paciente", "core.rbtree", "RBTree", "remover"),
+        ("chamar_proximo", "core.rbtree", "RBTree", "remover"),
+        ("chamar_proximo", "core.hash_table", "HashTable", "inserir"),
+        ("cancelar_atendimento", "core.heap", "MinHeap", "inserir"),
+        ("concluir_atendimento", "core.heap", "MinHeap", "inserir"),
     ],
 )
-def test_falha_em_estrutura(monkeypatch, operacao, modulo, classe):
+def test_falha_em_estrutura(monkeypatch, operacao, modulo, classe, metodo):
     s, atendimento = cenario()
     antes = foto(s)
     alvo = getattr(importlib.import_module(modulo), classe)
     with monkeypatch.context() as m:
-        m.setattr(alvo, "inserir", falhar_uma_vez(alvo.inserir))
+        m.setattr(alvo, metodo, falhar_uma_vez(getattr(alvo, metodo)))
         with pytest.raises(Falha):
             OPERACOES[operacao](s, atendimento)
     assert foto(s) == antes
