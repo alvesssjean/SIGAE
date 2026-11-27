@@ -2,150 +2,200 @@
 {% block title %}Histórico · SIGAE WEB{% endblock %}
 
 {% block content %}
-<h1>Histórico e Indicadores</h1>
+<div class="mb-3">
+  <h1 class="h3 fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Histórico e Indicadores</h1>
+  <p class="text-muted small mb-0">Indicadores acumulados, histórico cronológico de chegadas (RB-Tree histórico) e atendimentos encerrados</p>
+</div>
 
-<div class="grid-cards">
-  <div class="metrica">
-    <div class="rotulo">Aguardando</div>
-    <div class="valor">{{ indicadores.aguardando }}</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm kpi-card kpi-aguardando">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Aguardando</div>
+        <div class="kpi-valor text-warning-emphasis mt-1">{{ indicadores.aguardando }}</div>
+      </div>
+    </div>
   </div>
-  <div class="metrica">
-    <div class="rotulo">Em atendimento</div>
-    <div class="valor">{{ indicadores.em_atendimento }}</div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm kpi-card kpi-atendimento">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Em atendimento</div>
+        <div class="kpi-valor text-primary mt-1">{{ indicadores.em_atendimento }}</div>
+      </div>
+    </div>
   </div>
-  <div class="metrica">
-    <div class="rotulo">Concluídos</div>
-    <div class="valor">{{ indicadores.concluidos }}</div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm kpi-card kpi-concluido">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Concluídos</div>
+        <div class="kpi-valor text-success mt-1">{{ indicadores.concluidos }}</div>
+      </div>
+    </div>
   </div>
-  <div class="metrica">
-    <div class="rotulo">Cancelados</div>
-    <div class="valor">{{ indicadores.cancelados }}</div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm kpi-card kpi-cancelado">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Cancelados</div>
+        <div class="kpi-valor text-danger mt-1">{{ indicadores.cancelados }}</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="card">
-  <h2>Atendimentos concluídos por médico</h2>
-  {% if indicadores.medicos %}
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Médico</th>
-          <th>Registro</th>
-          <th>Situação</th>
-          <th>Atendimentos concluídos</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for medico in indicadores.medicos %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-bold">Atendimentos concluídos por médico</div>
+  <div class="table-responsive">
+    {% if indicadores.medicos %}
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
           <tr>
-            <td>#{{ medico.id }}</td>
-            <td>{{ medico.nome }}</td>
-            <td>{{ medico.registro }}</td>
-            <td>{{ medico.situacao }}</td>
-            <td>{{ medico.concluidos }}</td>
+            <th>ID</th>
+            <th>Médico</th>
+            <th>Registro</th>
+            <th>Situação</th>
+            <th class="text-end">Atendimentos concluídos</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhum médico cadastrado.</p>
-  {% endif %}
+        </thead>
+        <tbody>
+          {% for medico in indicadores.medicos %}
+            <tr>
+              <td class="fw-semibold">#{{ medico.id }}</td>
+              <td>{{ medico.nome }}</td>
+              <td class="text-muted small">{{ medico.registro }}</td>
+              <td>
+                <span class="badge rounded-pill {% if medico.situacao == 'Disponível' %}text-bg-success{% else %}text-bg-primary{% endif %}">
+                  {{ medico.situacao }}
+                </span>
+              </td>
+              <td class="text-end fw-bold">{{ medico.concluidos }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="p-3 text-muted small">Nenhum médico cadastrado.</div>
+    {% endif %}
+  </div>
 </div>
 
-<div class="card">
-  <h2>Histórico cronológico de chegadas (RB-Tree histórico · {{ chegadas|length }})</h2>
-  {% if chegadas %}
-    <table>
-      <thead>
-        <tr>
-          <th>Ordem</th>
-          <th>ID</th>
-          <th>Paciente</th>
-          <th>Chegada</th>
-          <th>Prioridade</th>
-          <th>Situação</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in chegadas %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <h2 class="h6 fw-bold mb-0">Histórico cronológico de chegadas (RB-Tree histórico)</h2>
+    <span class="badge bg-dark">{{ chegadas|length }}</span>
+  </div>
+  <div class="table-responsive">
+    {% if chegadas %}
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
           <tr>
-            <td>{{ forloop.counter }}º</td>
-            <td>#{{ p.id }}</td>
-            <td>{{ p.nome }}</td>
-            <td>{{ p.horario }}</td>
-            <td class="prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
-            <td>{{ p.situacao }}</td>
+            <th>Ordem</th>
+            <th>ID</th>
+            <th>Paciente</th>
+            <th>Chegada</th>
+            <th>Prioridade</th>
+            <th>Situação</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhuma chegada registrada.</p>
-  {% endif %}
+        </thead>
+        <tbody>
+          {% for p in chegadas %}
+            <tr>
+              <td class="fw-bold">{{ forloop.counter }}º</td>
+              <td>#{{ p.id }}</td>
+              <td>{{ p.nome }}</td>
+              <td class="small text-muted">{{ p.horario }}</td>
+              <td><span class="badge badge-prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</span></td>
+              <td>
+                <span class="badge rounded-pill {% if p.situacao == 'Aguardando' %}text-bg-warning{% elif p.situacao == 'Em atendimento' %}text-bg-primary{% elif p.situacao == 'Concluído' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                  {{ p.situacao }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="p-3 text-muted small">Nenhuma chegada registrada.</div>
+    {% endif %}
+  </div>
 </div>
 
-<div class="card">
-  <h2>Atendimentos encerrados ({{ encerrados|length }})</h2>
-  {% if encerrados %}
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Paciente</th>
-          <th>Médico</th>
-          <th>Status</th>
-          <th>Início</th>
-          <th>Fim</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in encerrados %}
-          <tr>
-            <td>#{{ item.atendimento.id }}</td>
-            <td>#{{ item.paciente.id }} · {{ item.paciente.nome }}</td>
-            <td>#{{ item.medico.id }} · {{ item.medico.nome }}</td>
-            <td>
-              <span class="badge {% if item.atendimento.status == 'Concluído' %}sit-concluido{% else %}sit-cancelado{% endif %}">
-                {{ item.atendimento.status }}
-              </span>
-            </td>
-            <td>{{ item.atendimento.inicio }}</td>
-            <td>{{ item.atendimento.fim }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhum atendimento encerrado.</p>
-  {% endif %}
-</div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h6 fw-bold mb-0">Atendimentos encerrados</h2>
+        <span class="badge bg-secondary">{{ encerrados|length }}</span>
+      </div>
+      <div class="table-responsive">
+        {% if encerrados %}
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Status</th>
+                <th>Início</th>
+                <th>Fim</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in encerrados %}
+                <tr>
+                  <td class="fw-semibold">#{{ item.atendimento.id }}</td>
+                  <td>#{{ item.paciente.id }} · {{ item.paciente.nome }}</td>
+                  <td>#{{ item.medico.id }} · {{ item.medico.nome }}</td>
+                  <td>
+                    <span class="badge rounded-pill {% if item.atendimento.status == 'Concluído' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                      {{ item.atendimento.status }}
+                    </span>
+                  </td>
+                  <td class="small text-muted">{{ item.atendimento.inicio }}</td>
+                  <td class="small text-muted">{{ item.atendimento.fim }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="p-3 text-muted small">Nenhum atendimento encerrado.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
-<div class="card">
-  <h2>Pacientes cancelados ({{ pacientes_cancelados|length }})</h2>
-  {% if pacientes_cancelados %}
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Chegada</th>
-          <th>Prioridade</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in pacientes_cancelados %}
-          <tr>
-            <td>#{{ p.id }}</td>
-            <td>{{ p.nome }}</td>
-            <td>{{ p.horario }}</td>
-            <td>{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhum paciente cancelado.</p>
-  {% endif %}
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h6 fw-bold mb-0">Pacientes cancelados</h2>
+        <span class="badge bg-danger">{{ pacientes_cancelados|length }}</span>
+      </div>
+      <div class="table-responsive">
+        {% if pacientes_cancelados %}
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Chegada</th>
+                <th>Prioridade</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pacientes_cancelados %}
+                <tr>
+                  <td class="fw-semibold">#{{ p.id }}</td>
+                  <td>{{ p.nome }}</td>
+                  <td class="small text-muted">{{ p.horario }}</td>
+                  <td><span class="badge badge-prio-{{ p.prioridade }}">P{{ p.prioridade }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="p-3 text-muted small">Nenhum paciente cancelado.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

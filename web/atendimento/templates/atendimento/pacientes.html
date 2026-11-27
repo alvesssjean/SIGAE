@@ -2,102 +2,144 @@
 {% block title %}Pacientes · SIGAE WEB{% endblock %}
 
 {% block content %}
-<h1>Pacientes</h1>
-
-<div class="card">
-  <h2>Cadastrar paciente</h2>
-  <p class="nota">O ID e o horário local de chegada são gerados automaticamente pelo sistema.</p>
-  <form method="post" action="{% url 'pacientes' %}" class="linha">
-    {% csrf_token %}
-    <div class="campo">
-      <label for="nome">Nome do paciente</label>
-      <input type="text" id="nome" name="nome" required placeholder="Nome fictício">
-    </div>
-    <div class="campo">
-      <label for="prioridade">Prioridade clínica</label>
-      <select id="prioridade" name="prioridade">
-        {% for valor, rotulo in opcoes_prioridade %}
-          <option value="{{ valor }}">{{ rotulo }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <button type="submit">Cadastrar</button>
-  </form>
+<div class="mb-3">
+  <h1 class="h3 fw-bold mb-0"><i class="bi bi-people text-primary me-2"></i>Pacientes</h1>
+  <p class="text-muted small mb-0">Cadastro com ID e horário local automáticos · Consulta O(1) via Tabela Hash</p>
 </div>
 
-<div class="card">
-  <h2>Consultar paciente por ID (Tabela Hash)</h2>
-  <form method="get" action="{% url 'pacientes' %}" class="linha">
-    <div class="campo">
-      <label for="buscar_id">ID do paciente</label>
-      <input type="number" id="buscar_id" name="buscar_id" value="{{ buscar_id }}" min="1" required>
+<div class="row g-4 mb-4">
+  <div class="col-lg-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-bold">
+        <i class="bi bi-person-plus-fill text-primary me-1"></i>Cadastrar paciente
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'pacientes' %}" class="row g-3 align-items-end">
+          {% csrf_token %}
+          <div class="col-md-6">
+            <label for="nome" class="form-label small fw-semibold">Nome do paciente</label>
+            <input type="text" class="form-control" id="nome" name="nome" required placeholder="Ex.: Maria Fictícia">
+          </div>
+          <div class="col-md-4">
+            <label for="prioridade" class="form-label small fw-semibold">Prioridade clínica</label>
+            <select id="prioridade" name="prioridade" class="form-select">
+              {% for valor, rotulo in opcoes_prioridade %}
+                <option value="{{ valor }}">{{ rotulo }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary fw-semibold">Cadastrar</button>
+          </div>
+        </form>
+        <div class="form-text mt-2">
+          <i class="bi bi-clock me-1"></i>O ID e o horário local de chegada (<code>AAAA-MM-DD HH:MM:SS</code>) são atribuídos automaticamente pelo núcleo.
+        </div>
+      </div>
     </div>
-    <button type="submit">Buscar</button>
-  </form>
-  {% if paciente_buscado %}
-    <p>
-      <strong>Resultado:</strong> #{{ paciente_buscado.id }} · {{ paciente_buscado.nome }} —
-      Prioridade {{ paciente_buscado.prioridade }} ({{ paciente_buscado.descricao_prioridade }}) ·
-      Chegada: {{ paciente_buscado.horario }} · Situação: <strong>{{ paciente_buscado.situacao }}</strong>
-      {% if paciente_buscado.retorno %}<span class="badge badge-retorno">Retorno</span>{% endif %}
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-bold">
+        <i class="bi bi-search text-info me-1"></i>Consultar paciente por ID (Tabela Hash)
+      </div>
+      <div class="card-body">
+        <form method="get" action="{% url 'pacientes' %}" class="row g-2 align-items-end">
+          <div class="col-8">
+            <label for="buscar_id" class="form-label small fw-semibold">ID do paciente</label>
+            <input type="number" class="form-control" id="buscar_id" name="buscar_id" value="{{ buscar_id }}" min="1" required placeholder="Ex.: 1">
+          </div>
+          <div class="col-4 d-grid">
+            <button type="submit" class="btn btn-outline-primary fw-semibold">Buscar</button>
+          </div>
+        </form>
+        {% if paciente_buscado %}
+          <div class="alert alert-light border mt-3 mb-0 py-2 px-3 small">
+            <div class="fw-bold">#{{ paciente_buscado.id }} · {{ paciente_buscado.nome }}</div>
+            <div>
+              <span class="badge badge-prio-{{ paciente_buscado.prioridade }}">P{{ paciente_buscado.prioridade }} · {{ paciente_buscado.descricao_prioridade }}</span>
+              <span class="badge text-bg-secondary ms-1">{{ paciente_buscado.situacao }}</span>
+              {% if paciente_buscado.retorno %}<span class="badge badge-retorno ms-1">Retorno</span>{% endif %}
+            </div>
+            <div class="text-muted mt-1">Chegada: {{ paciente_buscado.horario }}</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <h2 class="h6 fw-bold mb-0">Todos os pacientes cadastrados</h2>
+    <span class="badge bg-primary">{{ pacientes|length }}</span>
+  </div>
+  <div class="card-body pb-2">
+    <p class="small text-muted mb-2">
+      <i class="bi bi-info-circle me-1"></i>
+      Cancelar um paciente <strong>Aguardando</strong> cancela o cadastro definitivamente.
+      Cancelar um paciente <strong>Em atendimento</strong> encerra o atendimento atual e devolve o paciente à fila, logo atrás das Emergências.
     </p>
-  {% endif %}
-</div>
-
-<div class="card">
-  <h2>Todos os pacientes ({{ pacientes|length }})</h2>
-  <p class="nota">
-    Cancelar um paciente <strong>Aguardando</strong> cancela o cadastro definitivamente.
-    Cancelar um paciente <strong>Em atendimento</strong> encerra o atendimento atual e devolve o paciente à fila, logo atrás das Emergências.
-  </p>
-  {% if pacientes %}
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Prioridade</th>
-          <th>Chegada</th>
-          <th>Situação</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in pacientes %}
+  </div>
+  <div class="table-responsive">
+    {% if pacientes %}
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
           <tr>
-            <td>#{{ p.id }}</td>
-            <td>
-              {{ p.nome }}
-              {% if p.retorno %}<span class="badge badge-retorno">Retorno</span>{% endif %}
-            </td>
-            <td class="prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
-            <td>{{ p.horario }}</td>
-            <td>
-              <span class="badge {% if p.situacao == 'Aguardando' %}sit-aguardando{% elif p.situacao == 'Em atendimento' %}sit-em-atendimento{% elif p.situacao == 'Concluído' %}sit-concluido{% else %}sit-cancelado{% endif %}">
-                {{ p.situacao }}
-              </span>
-            </td>
-            <td>
-              {% if p.situacao == SIT_AGUARDANDO %}
-                <form method="post" action="{% url 'cancelar_paciente' p.id %}" class="inline-form">
-                  {% csrf_token %}
-                  <button type="submit" class="perigo">Cancelar cadastro</button>
-                </form>
-              {% elif p.situacao == SIT_EM_ATENDIMENTO %}
-                <form method="post" action="{% url 'cancelar_paciente' p.id %}" class="inline-form">
-                  {% csrf_token %}
-                  <button type="submit" class="perigo" title="Cancela o atendimento atual e devolve o paciente à fila atrás das Emergências">Cancelar (devolver à fila)</button>
-                </form>
-              {% else %}
-                <span class="nota">—</span>
-              {% endif %}
-            </td>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Prioridade</th>
+            <th>Chegada</th>
+            <th>Situação</th>
+            <th class="text-end">Ação</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhum paciente cadastrado.</p>
-  {% endif %}
+        </thead>
+        <tbody>
+          {% for p in pacientes %}
+            <tr>
+              <td class="fw-semibold">#{{ p.id }}</td>
+              <td>
+                <span class="fw-medium">{{ p.nome }}</span>
+                {% if p.retorno %}<span class="badge badge-retorno ms-1">Retorno</span>{% endif %}
+              </td>
+              <td>
+                <span class="badge badge-prio-{{ p.prioridade }}">
+                  {{ p.prioridade }} · {{ p.descricao_prioridade }}
+                </span>
+              </td>
+              <td class="small text-muted">{{ p.horario }}</td>
+              <td>
+                <span class="badge rounded-pill {% if p.situacao == 'Aguardando' %}text-bg-warning{% elif p.situacao == 'Em atendimento' %}text-bg-primary{% elif p.situacao == 'Concluído' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                  {{ p.situacao }}
+                </span>
+              </td>
+              <td class="text-end">
+                {% if p.situacao == SIT_AGUARDANDO %}
+                  <form method="post" action="{% url 'cancelar_paciente' p.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-x-circle me-1"></i>Cancelar cadastro
+                    </button>
+                  </form>
+                {% elif p.situacao == SIT_EM_ATENDIMENTO %}
+                  <form method="post" action="{% url 'cancelar_paciente' p.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-warning text-dark" title="Cancela o atendimento atual e devolve o paciente à fila atrás das Emergências">
+                      <i class="bi bi-arrow-return-left me-1"></i>Cancelar (devolver à fila)
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="p-4 text-center text-muted">Nenhum paciente cadastrado.</div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

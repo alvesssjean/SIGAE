@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sigae-postgres
+    environment:
+      POSTGRES_DB: sigae
+      POSTGRES_USER: sigae
+      POSTGRES_PASSWORD: sigae_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sigae -d sigae"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build: .
+    container_name: sigae-web
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_DEBUG: "False"
+      POSTGRES_DB: sigae
+      POSTGRES_USER: sigae
+      POSTGRES_PASSWORD: sigae_password
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      AUTO_POPULAR_DEMO: "1"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -2,103 +2,136 @@
 {% block title %}Triagem/Fila · SIGAE WEB{% endblock %}
 
 {% block content %}
-<h1>Triagem e Filas</h1>
-
-<div class="card">
-  <h2>Ações de triagem e chamada</h2>
-  <form method="post" action="{% url 'triagem' %}" class="linha">
-    {% csrf_token %}
-    <div class="campo">
-      <label for="paciente_id">ID do paciente aguardando</label>
-      <input type="number" id="paciente_id" name="paciente_id" min="1" required>
-    </div>
-    <div class="campo">
-      <label for="nova_prioridade">Nova prioridade</label>
-      <select id="nova_prioridade" name="nova_prioridade">
-        {% for valor, rotulo in opcoes_prioridade %}
-          <option value="{{ valor }}">{{ rotulo }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <button type="submit">Reclassificar</button>
-  </form>
-  <p></p>
-  <form method="post" action="{% url 'chamar_proximo' %}">
-    {% csrf_token %}
-    <input type="hidden" name="origem" value="triagem">
-    <button type="submit">Chamar próximo paciente</button>
-  </form>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h1 class="h3 fw-bold mb-0"><i class="bi bi-list-ol text-primary me-2"></i>Triagem e Filas</h1>
+    <p class="text-muted small mb-0">Comparação em tempo real entre a ordem do Min-Heap (prioridade) e da RB-Tree (chegada)</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'diagnostico' %}" class="btn btn-outline-info text-dark fw-semibold">
+      <i class="bi bi-diagram-3-fill me-1"></i>Ver Árvores no Diagnóstico
+    </a>
+    <form method="post" action="{% url 'chamar_proximo' %}">
+      {% csrf_token %}
+      <input type="hidden" name="origem" value="triagem">
+      <button type="submit" class="btn btn-primary fw-semibold">
+        <i class="bi bi-megaphone-fill me-1"></i>Chamar próximo paciente
+      </button>
+    </form>
+  </div>
 </div>
 
-<div class="card">
-  <h2>Fila por ordem de prioridade (Min-Heap · {{ fila_prioridade|length }})</h2>
-  {% if fila_prioridade %}
-    <table>
-      <thead>
-        <tr>
-          <th>Posição</th>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Prioridade</th>
-          <th>Chegada</th>
-          <th>Marcação</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in fila_prioridade %}
-          <tr>
-            <td>{{ forloop.counter }}º</td>
-            <td>#{{ p.id }}</td>
-            <td>{{ p.nome }}</td>
-            <td class="prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
-            <td>{{ p.horario }}</td>
-            <td>
-              {% if proximo and p.id == proximo.id %}
-                <span class="badge badge-proximo">Próximo</span>
-              {% endif %}
-              {% if p.retorno %}
-                <span class="badge badge-retorno">Retorno</span>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhum paciente aguardando na fila.</p>
-  {% endif %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-bold">
+    <i class="bi bi-sliders text-warning me-1"></i>Reclassificar prioridade (alterar_prioridade em O(log n))
+  </div>
+  <div class="card-body">
+    <form method="post" action="{% url 'triagem' %}" class="row g-3 align-items-end">
+      {% csrf_token %}
+      <div class="col-sm-4 col-md-3">
+        <label for="paciente_id" class="form-label small fw-semibold">ID do paciente aguardando</label>
+        <input type="number" class="form-control" id="paciente_id" name="paciente_id" min="1" required placeholder="Ex.: 3">
+      </div>
+      <div class="col-sm-5 col-md-4">
+        <label for="nova_prioridade" class="form-label small fw-semibold">Nova prioridade clínica</label>
+        <select id="nova_prioridade" name="nova_prioridade" class="form-select">
+          {% for valor, rotulo in opcoes_prioridade %}
+            <option value="{{ valor }}">{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-3 col-md-2 d-grid">
+        <button type="submit" class="btn btn-warning fw-semibold">Reclassificar</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<div class="card">
-  <h2>Fila por ordem de chegada (Árvore Rubro-Negra · {{ fila_chegada|length }})</h2>
-  {% if fila_chegada %}
-    <table>
-      <thead>
-        <tr>
-          <th>Ordem</th>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Chegada</th>
-          <th>Prioridade</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in fila_chegada %}
-          <tr>
-            <td>{{ forloop.counter }}º</td>
-            <td>#{{ p.id }}</td>
-            <td>
-              {{ p.nome }}
-              {% if p.retorno %}<span class="badge badge-retorno">Retorno</span>{% endif %}
-            </td>
-            <td>{{ p.horario }}</td>
-            <td class="prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhum paciente aguardando na fila.</p>
-  {% endif %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h6 fw-bold mb-0"><i class="bi bi-triangle-fill text-danger me-1"></i>Fila por prioridade (Min-Heap)</h2>
+        <span class="badge bg-danger">{{ fila_prioridade|length }}</span>
+      </div>
+      <div class="table-responsive">
+        {% if fila_prioridade %}
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Pos.</th>
+                <th>ID</th>
+                <th>Paciente</th>
+                <th>Prioridade</th>
+                <th>Chegada</th>
+                <th>Marcação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in fila_prioridade %}
+                <tr class="{% if proximo and p.id == proximo.id %}table-warning{% endif %}">
+                  <td class="fw-bold">{{ forloop.counter }}º</td>
+                  <td>#{{ p.id }}</td>
+                  <td class="fw-medium">{{ p.nome }}</td>
+                  <td><span class="badge badge-prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</span></td>
+                  <td class="small text-muted">{{ p.horario }}</td>
+                  <td>
+                    {% if proximo and p.id == proximo.id %}
+                      <span class="badge text-bg-danger">Próximo</span>
+                    {% endif %}
+                    {% if p.retorno %}
+                      <span class="badge badge-retorno">Retorno</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="p-4 text-center text-muted">Nenhum paciente aguardando na fila.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h6 fw-bold mb-0"><i class="bi bi-diagram-2-fill text-dark me-1"></i>Fila por ordem de chegada (RB-Tree)</h2>
+        <span class="badge bg-dark">{{ fila_chegada|length }}</span>
+      </div>
+      <div class="table-responsive">
+        {% if fila_chegada %}
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Ordem</th>
+                <th>ID</th>
+                <th>Paciente</th>
+                <th>Chegada</th>
+                <th>Prioridade</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in fila_chegada %}
+                <tr>
+                  <td class="fw-bold">{{ forloop.counter }}º</td>
+                  <td>#{{ p.id }}</td>
+                  <td class="fw-medium">
+                    {{ p.nome }}
+                    {% if p.retorno %}<span class="badge badge-retorno ms-1">Retorno</span>{% endif %}
+                  </td>
+                  <td class="small text-muted">{{ p.horario }}</td>
+                  <td><span class="badge badge-prio-{{ p.prioridade }}">{{ p.prioridade }} · {{ p.descricao_prioridade }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="p-4 text-center text-muted">Nenhum paciente aguardando na fila.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

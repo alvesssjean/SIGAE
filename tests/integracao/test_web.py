@@ -117,3 +117,28 @@ def test_cancelar_atendimento_via_web_e_repetir_pelo_mesmo_medico_mostra_erro(ba
     assert "já cancelou o atendimento deste paciente" in resp_erro.content.decode("utf-8").lower()
     assert len(s.listar_atendimentos_ativos()) == 1
     assert s.validar_indices().ok
+
+
+def test_diagnostico_renderiza_svg_arvores_heaps_e_buckets_hash(banco):
+    client = Client()
+    resp_med = client.post(
+        "/medicos/",
+        {"nome": "Dra. Visual", "registro": "CRM-VIS-1", "origem": "diagnostico"},
+        follow=True,
+    )
+    assert resp_med.status_code == 200
+    assert resp_med.redirect_chain[-1][0] == "/diagnostico/"
+
+    resp_pac = client.post(
+        "/pacientes/",
+        {"nome": "Paciente Visual", "prioridade": "1", "origem": "diagnostico"},
+        follow=True,
+    )
+    assert resp_pac.status_code == 200
+    html = resp_pac.content.decode("utf-8")
+    assert "<svg" in html
+    assert "Árvore Rubro-Negra" in html
+    assert "Min-Heap (paciente)" in html
+    assert "Min-Heap (medico)" in html
+    assert "bucket[0]" in html
+    assert "Paciente Visual" in html

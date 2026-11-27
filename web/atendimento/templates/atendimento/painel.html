@@ -2,111 +2,180 @@
 {% block title %}Painel geral · SIGAE WEB{% endblock %}
 
 {% block content %}
-<h1>Painel geral</h1>
-
-<div class="grid-cards">
-  <div class="metrica">
-    <div class="rotulo">Aguardando</div>
-    <div class="valor">{{ indicadores.aguardando }}</div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h1 class="h3 fw-bold mb-0"><i class="bi bi-speedometer2 text-primary me-2"></i>Painel geral</h1>
+    <p class="text-muted small mb-0">Visão consolidada do pronto atendimento em tempo real</p>
   </div>
-  <div class="metrica">
-    <div class="rotulo">Em atendimento</div>
-    <div class="valor">{{ indicadores.em_atendimento }}</div>
-  </div>
-  <div class="metrica">
-    <div class="rotulo">Concluídos</div>
-    <div class="valor">{{ indicadores.concluidos }}</div>
-  </div>
-  <div class="metrica">
-    <div class="rotulo">Cancelados</div>
-    <div class="valor">{{ indicadores.cancelados }}</div>
-  </div>
-  <div class="metrica">
-    <div class="rotulo">Médicos livres / ocupados</div>
-    <div class="valor">{{ indicadores.medicos_disponiveis }} / {{ indicadores.medicos_em_atendimento }}</div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'diagnostico' %}" class="btn btn-outline-info text-dark fw-semibold">
+      <i class="bi bi-diagram-3-fill me-1"></i>Ver Árvores, Heaps e Hash
+    </a>
+    <form method="post" action="{% url 'chamar_proximo' %}">
+      {% csrf_token %}
+      <input type="hidden" name="origem" value="painel">
+      <button type="submit" class="btn btn-primary fw-semibold">
+        <i class="bi bi-megaphone-fill me-1"></i>Chamar próximo
+      </button>
+    </form>
   </div>
 </div>
 
-<div class="card">
-  <h2>Próximo paciente na fila</h2>
-  {% if proximo %}
-    <p>
-      <strong>#{{ proximo.id }} · {{ proximo.nome }}</strong> —
-      <span class="prio-{{ proximo.prioridade }}">Prioridade {{ proximo.prioridade }} ({{ proximo.descricao_prioridade }})</span>
-      · Chegada: {{ proximo.horario }}
-      {% if proximo.retorno %}<span class="badge badge-retorno">Retorno</span>{% endif %}
-    </p>
-  {% else %}
-    <p class="nota">Nenhum paciente aguardando na fila.</p>
-  {% endif %}
-  <form method="post" action="{% url 'chamar_proximo' %}">
-    {% csrf_token %}
-    <input type="hidden" name="origem" value="painel">
-    <button type="submit">Chamar próximo</button>
-  </form>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-lg">
+    <div class="card shadow-sm kpi-card kpi-aguardando h-100">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Aguardando</div>
+        <div class="kpi-valor text-warning-emphasis mt-1">{{ indicadores.aguardando }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg">
+    <div class="card shadow-sm kpi-card kpi-atendimento h-100">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Em atendimento</div>
+        <div class="kpi-valor text-primary mt-1">{{ indicadores.em_atendimento }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg">
+    <div class="card shadow-sm kpi-card kpi-concluido h-100">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Concluídos</div>
+        <div class="kpi-valor text-success mt-1">{{ indicadores.concluidos }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-6 col-lg">
+    <div class="card shadow-sm kpi-card kpi-cancelado h-100">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Cancelados</div>
+        <div class="kpi-valor text-danger mt-1">{{ indicadores.cancelados }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg">
+    <div class="card shadow-sm kpi-card kpi-medicos h-100">
+      <div class="card-body">
+        <div class="text-muted small text-uppercase fw-semibold">Médicos livres / ocupados</div>
+        <div class="kpi-valor mt-1">
+          <span class="text-success">{{ indicadores.medicos_disponiveis }}</span>
+          <span class="text-muted fs-5">/</span>
+          <span class="text-primary">{{ indicadores.medicos_em_atendimento }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="card">
-  <h2>Médicos cadastrados ({{ medicos|length }})</h2>
-  {% if medicos %}
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Registro</th>
-          <th>Situação</th>
-          <th>Concluídos</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for medico in medicos %}
-          <tr>
-            <td>#{{ medico.id }}</td>
-            <td>{{ medico.nome }}</td>
-            <td>{{ medico.registro }}</td>
-            <td>
-              <span class="badge {% if medico.situacao == 'Disponível' %}sit-disponivel{% else %}sit-em-atendimento{% endif %}">
-                {{ medico.situacao }}
-              </span>
-            </td>
-            <td>{{ medico.concluidos }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhum médico cadastrado.</p>
-  {% endif %}
+<div class="card shadow-sm mb-4 border-primary-subtle">
+  <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <div class="text-uppercase small fw-bold text-primary mb-1">
+        <i class="bi bi-bell-fill me-1"></i>Próximo paciente na fila (raiz do Min-Heap)
+      </div>
+      {% if proximo %}
+        <div class="fs-5 fw-bold">
+          #{{ proximo.id }} · {{ proximo.nome }}
+          <span class="badge badge-prio-{{ proximo.prioridade }} ms-1">
+            P{{ proximo.prioridade }} · {{ proximo.descricao_prioridade }}
+          </span>
+          {% if proximo.retorno %}
+            <span class="badge badge-retorno ms-1">Retorno</span>
+          {% endif %}
+        </div>
+        <div class="small text-muted">Chegada registrada: {{ proximo.horario }}</div>
+      {% else %}
+        <div class="text-muted">Nenhum paciente aguardando na fila no momento.</div>
+      {% endif %}
+    </div>
+    <form method="post" action="{% url 'chamar_proximo' %}">
+      {% csrf_token %}
+      <input type="hidden" name="origem" value="painel">
+      <button type="submit" class="btn btn-primary btn-lg">
+        <i class="bi bi-megaphone me-1"></i>Chamar próximo
+      </button>
+    </form>
+  </div>
 </div>
 
-<div class="card">
-  <h2>Atendimentos em andamento ({{ atendimentos_ativos|length }})</h2>
-  {% if atendimentos_ativos %}
-    <table>
-      <thead>
-        <tr>
-          <th>Atendimento</th>
-          <th>Paciente</th>
-          <th>Médico</th>
-          <th>Início</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in atendimentos_ativos %}
-          <tr>
-            <td>#{{ item.atendimento.id }}</td>
-            <td>#{{ item.paciente.id }} · {{ item.paciente.nome }}</td>
-            <td>#{{ item.medico.id }} · {{ item.medico.nome }}</td>
-            <td>{{ item.atendimento.inicio }}</td>
-            <td><span class="badge sit-em-andamento">{{ item.atendimento.status }}</span></td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="nota">Nenhum atendimento em andamento no momento.</p>
-  {% endif %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h6 fw-bold mb-0"><i class="bi bi-heart-pulse text-success me-1"></i>Médicos cadastrados</h2>
+        <span class="badge bg-secondary">{{ medicos|length }}</span>
+      </div>
+      <div class="table-responsive">
+        {% if medicos %}
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Registro</th>
+                <th>Situação</th>
+                <th class="text-end">Concluídos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for medico in medicos %}
+                <tr>
+                  <td class="fw-semibold">#{{ medico.id }}</td>
+                  <td>{{ medico.nome }}</td>
+                  <td class="text-muted small">{{ medico.registro }}</td>
+                  <td>
+                    <span class="badge rounded-pill {% if medico.situacao == 'Disponível' %}text-bg-success{% else %}text-bg-primary{% endif %}">
+                      {{ medico.situacao }}
+                    </span>
+                  </td>
+                  <td class="text-end fw-bold">{{ medico.concluidos }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="p-3 text-muted small">Nenhum médico cadastrado.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h2 class="h6 fw-bold mb-0"><i class="bi bi-clipboard2-pulse text-primary me-1"></i>Atendimentos em andamento</h2>
+        <span class="badge bg-primary">{{ atendimentos_ativos|length }}</span>
+      </div>
+      <div class="table-responsive">
+        {% if atendimentos_ativos %}
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Atend.</th>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Início</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in atendimentos_ativos %}
+                <tr>
+                  <td class="fw-semibold">#{{ item.atendimento.id }}</td>
+                  <td>#{{ item.paciente.id }} · {{ item.paciente.nome }}</td>
+                  <td>#{{ item.medico.id }} · {{ item.medico.nome }}</td>
+                  <td class="small text-muted">{{ item.atendimento.inicio }}</td>
+                  <td><span class="badge rounded-pill text-bg-primary">{{ item.atendimento.status }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="p-3 text-muted small">Nenhum atendimento em andamento no momento.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

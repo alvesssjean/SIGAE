@@ -5,32 +5,86 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}SIGAE WEB{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'atendimento/estilo.css' %}">
 </head>
-<body>
-  <header>
-    <div class="brand">SIGAE WEB · Sistema Inteligente de Gerenciamento de Atendimentos de Emergência</div>
-    <nav>
-      <a href="{% url 'painel' %}" class="{% if tela_ativa == 'painel' %}ativo{% endif %}">Painel geral</a>
-      <a href="{% url 'pacientes' %}" class="{% if tela_ativa == 'pacientes' %}ativo{% endif %}">Pacientes</a>
-      <a href="{% url 'triagem' %}" class="{% if tela_ativa == 'triagem' %}ativo{% endif %}">Triagem/Fila</a>
-      <a href="{% url 'medicos' %}" class="{% if tela_ativa == 'medicos' %}ativo{% endif %}">Médicos</a>
-      <a href="{% url 'atendimentos' %}" class="{% if tela_ativa == 'atendimentos' %}ativo{% endif %}">Atendimentos</a>
-      <a href="{% url 'historico' %}" class="{% if tela_ativa == 'historico' %}ativo{% endif %}">Histórico</a>
-      <a href="{% url 'diagnostico' %}" class="{% if tela_ativa == 'diagnostico' %}ativo{% endif %}">Diagnóstico</a>
-    </nav>
-  </header>
+<body class="d-flex flex-column min-vh-100">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+    <div class="container-xl">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'painel' %}">
+        <i class="bi bi-hospital-fill text-danger"></i>
+        <span>SIGAE <span class="text-info">WEB</span></span>
+        <span class="badge bg-secondary navbar-brand-badge d-none d-sm-inline">EDA</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuSigae" aria-controls="menuSigae" aria-expanded="false" aria-label="Abrir menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="menuSigae">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-1">
+          <li class="nav-item">
+            <a class="nav-link px-3 rounded {% if tela_ativa == 'painel' %}active bg-primary fw-semibold{% endif %}" href="{% url 'painel' %}">
+              <i class="bi bi-speedometer2 me-1"></i>Painel geral
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-3 rounded {% if tela_ativa == 'pacientes' %}active bg-primary fw-semibold{% endif %}" href="{% url 'pacientes' %}">
+              <i class="bi bi-people me-1"></i>Pacientes
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-3 rounded {% if tela_ativa == 'triagem' %}active bg-primary fw-semibold{% endif %}" href="{% url 'triagem' %}">
+              <i class="bi bi-list-ol me-1"></i>Triagem/Fila
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-3 rounded {% if tela_ativa == 'medicos' %}active bg-primary fw-semibold{% endif %}" href="{% url 'medicos' %}">
+              <i class="bi bi-heart-pulse me-1"></i>Médicos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-3 rounded {% if tela_ativa == 'atendimentos' %}active bg-primary fw-semibold{% endif %}" href="{% url 'atendimentos' %}">
+              <i class="bi bi-clipboard2-pulse me-1"></i>Atendimentos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-3 rounded {% if tela_ativa == 'historico' %}active bg-primary fw-semibold{% endif %}" href="{% url 'historico' %}">
+              <i class="bi bi-clock-history me-1"></i>Histórico
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link px-3 rounded {% if tela_ativa == 'diagnostico' %}active bg-info text-dark fw-semibold{% else %}text-info{% endif %}" href="{% url 'diagnostico' %}">
+              <i class="bi bi-diagram-3-fill me-1"></i>Estruturas / Diagnóstico
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-  <main>
+  <main class="container-xl my-4 flex-grow-1">
     {% if messages %}
-      <ul class="mensagens">
+      <div class="mb-3">
         {% for message in messages %}
-          <li class="{{ message.tags }}">{{ message }}</li>
+          <div class="alert {% if 'error' in message.tags %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show shadow-sm d-flex align-items-center gap-2" role="alert">
+            <i class="bi {% if 'error' in message.tags %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+          </div>
         {% endfor %}
-      </ul>
+      </div>
     {% endif %}
 
     {% block content %}{% endblock %}
   </main>
+
+  <footer class="bg-white border-top py-3 mt-auto">
+    <div class="container-xl d-flex flex-wrap justify-content-between align-items-center small text-muted gap-2">
+      <span><strong>SIGAE WEB</strong> · Sistema Inteligente de Gerenciamento de Atendimentos de Emergência (Simulador Acadêmico · Dados 100% Fictícios)</span>
+      <span>RB-Tree · Min-Heaps sem vetor · Tabela Hash · SQLite</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

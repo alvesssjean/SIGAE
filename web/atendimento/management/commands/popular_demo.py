@@ -25,8 +25,21 @@ PACIENTES_FICTICIOS = (
 class Command(BaseCommand):
     help = "Popula médicos e pacientes fictícios passando exclusivamente por core/sistema.py."
 
+    def add_arguments(self, parser) -> None:
+        parser.add_argument(
+            "--se-vazio",
+            action="store_true",
+            help="Popula apenas se não houver médicos nem pacientes cadastrados.",
+        )
+
     def handle(self, *args, **options) -> None:
         sistema = obter_sistema()
+        if options.get("se_vazio") and (
+            len(sistema.listar_medicos()) > 0 or len(sistema.listar_pacientes()) > 0
+        ):
+            self.stdout.write("Base já possui dados; popular_demo ignorado.")
+            return
+
         for nome, registro in MEDICOS_FICTICIOS:
             sistema.cadastrar_medico(nome, registro)
         for nome, prioridade in PACIENTES_FICTICIOS:

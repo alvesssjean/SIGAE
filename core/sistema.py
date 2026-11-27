@@ -139,6 +139,32 @@ class DiagnosticoSistema:
         self.relogio_logico = relogio_logico
 
 
+class VisaoEstruturas:
+    """Snapshot somente-leitura das raízes e buckets para visualização gráfica."""
+
+    def __init__(
+        self,
+        rb_espera_raiz: Any,
+        rb_espera_texto: str,
+        rb_historico_raiz: Any,
+        rb_historico_texto: str,
+        heap_pacientes_no_raiz: Any,
+        heap_medicos_no_raiz: Any,
+        buckets_pacientes: ListaEncadeada,
+        buckets_medicos: ListaEncadeada,
+        buckets_atendimentos: ListaEncadeada,
+    ) -> None:
+        self.rb_espera_raiz = rb_espera_raiz
+        self.rb_espera_texto = rb_espera_texto
+        self.rb_historico_raiz = rb_historico_raiz
+        self.rb_historico_texto = rb_historico_texto
+        self.heap_pacientes_no_raiz = heap_pacientes_no_raiz
+        self.heap_medicos_no_raiz = heap_medicos_no_raiz
+        self.buckets_pacientes = buckets_pacientes
+        self.buckets_medicos = buckets_medicos
+        self.buckets_atendimentos = buckets_atendimentos
+
+
 def _chave_paciente(paciente: Paciente) -> tuple[int, int, str, int]:
     return paciente.chave_heap()
 
@@ -1015,4 +1041,18 @@ class Sistema:
                 ultimo_medico_id=self._ultimo_medico_id,
                 ultimo_atendimento_id=self._ultimo_atendimento_id,
                 relogio_logico=self._relogio_logico,
+            )
+
+    def visao_estruturas(self) -> VisaoEstruturas:
+        with self._lock:
+            return VisaoEstruturas(
+                rb_espera_raiz=self._rb_espera.raiz(),
+                rb_espera_texto=self._rb_espera.desenhar(),
+                rb_historico_raiz=self._rb_historico.raiz(),
+                rb_historico_texto=self._rb_historico.desenhar(),
+                heap_pacientes_no_raiz=self._heap_pacientes.no_raiz(),
+                heap_medicos_no_raiz=self._heap_medicos.no_raiz(),
+                buckets_pacientes=self._hash_pacientes.buckets_detalhados(),
+                buckets_medicos=self._hash_medicos.buckets_detalhados(),
+                buckets_atendimentos=self._hash_atendimentos.buckets_detalhados(),
             )

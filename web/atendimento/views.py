@@ -19,6 +19,11 @@ from core.erros import (
 )
 from core.paciente import AGUARDANDO, CANCELADO, EM_ATENDIMENTO
 from web.atendimento.servico import obter_sistema
+from web.atendimento.visualizacao import (
+    gerar_svg_heap,
+    gerar_svg_rb,
+    preparar_buckets_hash,
+)
 
 ERROS_DOMINIO = (
     ErroValidacao,
@@ -79,7 +84,15 @@ def _enriquecer_atendimentos(sistema: Any, atendimentos_lista: Any) -> list[dict
 
 def _destino_seguro(request: HttpRequest, padrao: str) -> str:
     origem = (request.POST.get("origem") or "").strip()
-    if origem in ("painel", "triagem", "pacientes", "medicos", "atendimentos", "historico"):
+    if origem in (
+        "painel",
+        "triagem",
+        "pacientes",
+        "medicos",
+        "atendimentos",
+        "historico",
+        "diagnostico",
+    ):
         return origem
     return padrao
 
@@ -138,7 +151,7 @@ def pacientes(request: HttpRequest) -> HttpResponse:
                 f"{p.prioridade} ({p.descricao_prioridade}) às {p.horario}."
             ),
         )
-        return redirect("pacientes")
+        return redirect(_destino_seguro(request, "pacientes"))
 
     paciente_buscado = None
     buscar_id = (request.GET.get("buscar_id") or "").strip()
@@ -232,7 +245,7 @@ def medicos(request: HttpRequest) -> HttpResponse:
             lambda: sistema.cadastrar_medico(nome, registro),
             lambda m: f"Médico #{m.id} ({m.nome} · {m.registro}) cadastrado como {m.situacao}.",
         )
-        return redirect("medicos")
+        return redirect(_destino_seguro(request, "medicos"))
 
     medico_buscado = None
     buscar_id = (request.GET.get("buscar_id") or "").strip()
@@ -318,11 +331,28 @@ def historico(request: HttpRequest) -> HttpResponse:
 def diagnostico(request: HttpRequest) -> HttpResponse:
     sistema = obter_sistema()
     diag = sistema.diagnostico()
+    visao = sistema.visao_estruturas()
     return render(
         request,
         "atendimento/diagnostico.html",
         {
             "tela_ativa": "diagnostico",
             "diag": diag,
+            "visao": visao,
+            "opcoes_prioridade": OPCOES_PRIORIDADE,
+            "svg_rb_espera": gerar_svg_rb(visao.rb_espera_raiz),
+            "svg_rb_historico": gerar_svg_rb(visao.rb_historico_raiz),
+            "svg_heap_pacientes": gerar_svg_heap(visao.heap_pacientes_no_raiz, "paciente"),
+            "svg_heap_medicos": gerar_svg_heap(visao.heap_medicos_no_raiz, "medico"),
+            "buckets_pacientes": preparar_buckets_hash(visao.buckets_pacientes, "paciente"),
+            "buckets_medicos": preparar_buckets_hash(visao.buckets_medicos, "medico"),
+            "buckets_atendimentos": preparar_buckets_hash(
+                visao.buckets_atendimentos, "atendimento"
+            ),
+            "pct_carga_pacientes": min(100, round(diag.hash_pacientes.fator_carga * 100)),
+            "pct_carga_medicos": min(100, round(diag.hash_medicos.fator_carga * 100)),
+            "pct_carga_atendimentos": min(
+                100, round(diag.hash_atendimentos.fator_carga * 100)
+            ),
         },
     )

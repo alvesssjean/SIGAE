@@ -220,6 +220,17 @@ class HashTable:
                 yield (atual.id, atual.valor)
                 atual = atual.proximo
 
+    def buckets_detalhados(self) -> ListaEncadeada:
+        buckets = ListaEncadeada()
+        for indice in range(self._capacidade):
+            cadeia = ListaEncadeada()
+            atual = self._bucket(indice).proximo
+            while atual is not None:
+                cadeia.anexar((atual.id, atual.valor))
+                atual = atual.proximo
+            buckets.anexar((indice, cadeia))
+        return buckets
+
     def estatisticas(self) -> EstatisticasHash:
         buckets_ocupados = 0
         maior_cadeia = 0

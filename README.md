@@ -15,7 +15,7 @@ Todo o núcleo (`core/`) é implementado em Python puro, sem uso de `list`, `dic
 | Árvore Rubro-Negra | `core/rbtree.py` | Fila de espera por ordem de chegada e histórico cronológico de chegadas |
 | Núcleo Integrador | `core/sistema.py` | Regras de negócio, validação, rollback atômico e validação cruzada de índices |
 
-A interface web (`web/`) utiliza **Django** apenas para exibição e formulários: as views chamam exclusivamente `obter_sistema()`, e o **SQLite** atua apenas como camada de persistência e rehidratação na inicialização (sem `order_by`, `filter` ou `objects.get` para regras de negócio).
+A interface web (`web/`) utiliza **Django** com **Bootstrap 5** apenas para exibição e formulários: as views chamam exclusivamente `obter_sistema()`, e o banco de dados (SQLite localmente ou PostgreSQL no Docker) atua apenas como camada de persistência e rehidratação na inicialização (sem `order_by`, `filter` ou `objects.get` para regras de negócio).
 
 ## Requisitos
 
@@ -34,7 +34,7 @@ python manage.py runserver --noreload --nothreading
 
 Acesse no navegador: `http://127.0.0.1:8000/`
 
-> **Aviso de processo único:** execute sempre com `--noreload --nothreading`. O estado das estruturas de dados permanece em memória sincronizado com o SQLite; múltiplos processos ou threads concorrentes poderiam duplicar o estado em memória.
+> **Aviso de processo único:** execute sempre com `--noreload --nothreading`. O estado das estruturas de dados permanece em memória sincronizado com o banco; múltiplos processos ou threads concorrentes poderiam duplicar o estado em memória.
 
 ## Resetar e repopular dados fictícios
 
@@ -43,13 +43,28 @@ python manage.py resetar_demo
 python manage.py popular_demo
 ```
 
+## Execução com Docker Compose (PostgreSQL + Gunicorn + WhiteNoise)
+
+```bash
+docker compose up --build
+```
+
+Acesse no navegador: `http://127.0.0.1:8000/` (e as árvores/estruturas ao vivo em `http://127.0.0.1:8000/diagnostico/`).
+
+- O serviço `db` sobe um **PostgreSQL 16** (`postgres:16-alpine`) com volume persistente `postgres_data` e healthcheck antes de iniciar o container `web`.
+- O Gunicorn roda com `--workers 1 --threads 1` para preservar a consistência do estado em memória das estruturas (ADR-004).
+- Os arquivos estáticos são servidos pelo **WhiteNoise** (`CompressedStaticFilesStorage`).
+- Na primeira subida com base vazia, os dados fictícios são populados automaticamente (`AUTO_POPULAR_DEMO=1`).
+- Sem `POSTGRES_DB` definido (execução local ou `pytest`), o Django usa SQLite automaticamente como fallback.
+- Para resetar os dados dentro do container: `docker compose exec web python manage.py resetar_demo && docker compose exec web python manage.py popular_demo`.
+
 ## Testes automatizados
 
 ```bash
 pytest -v
 ```
 
-Os testes cobrem estruturas unitárias, proibição de coleções prontas via AST, arquitetura web, rollback com falha injetada, rehidratação do SQLite, consistência em 200 operações aleatórias, smoke tests web e todos os cenários de aceitação (A, A2, B, C, C2–C4, P1, R1, M1–M5, K1–K5, L1, X1, X2).
+Os testes cobrem estruturas unitárias, proibição de coleções prontas via AST, arquitetura web, rollback com falha injetada, rehidratação do banco, consistência em 200 operações aleatórias, smoke tests web e todos os cenários de aceitação (A, A2, B, C, C2–C4, P1, R1, M1–M5, K1–K5, L1, X1, X2).
 
 Para executar a demonstração interativa da Árvore Rubro-Negra no terminal:
 
@@ -62,6 +77,7 @@ python cli/demo_rbtree.py
 - [Manual de uso](manual.md)
 - [Relatório técnico](docs/RELATORIO.md)
 - [Roteiro da defesa](docs/ROTEIRO_DEFESA.md)
+- [Estudo do Min-Heap](docs/ESTUDO_HEAP.md)
 - [Decisões de arquitetura (ADRs)](docs/decisoes/)
 - [Evidências de testes](docs/evidencias/pytest.txt)
 - [Documentos de referência](docs/referencia/)
